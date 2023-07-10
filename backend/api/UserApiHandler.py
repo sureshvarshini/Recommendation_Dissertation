@@ -12,6 +12,8 @@ class UserResource(Resource):
 
         if db_user is not None:
             return make_response(jsonify({
+                "id": db_user.id,
+                "Username": db_user.username,
                 "Firstname": db_user.firstname,
                 "Lastname": db_user.lastname,
                 "Email": db_user.email,
@@ -38,7 +40,7 @@ class UserResource(Resource):
                 "message": f"User '{id}' does not exist.",
                 "status": 404
             }), 404)
-        
+
         firstname = data.get("firstname")
         lastname = data.get("lastname")
         age = data.get("age")
@@ -128,7 +130,7 @@ class SignupUserResource(Resource):
 
         return make_response(jsonify({
             "message": "User created successfuly.",
-            "user-id": new_user_id,
+            "id": new_user_id,
             "status": 201
         }), 201)
 
@@ -148,9 +150,9 @@ class LoginUserResource(Resource):
             refresh_token = create_refresh_token(identity=db_user.username)
 
             return make_response(jsonify({
-                "message": "Token generated successfully.", 
+                "message": "Token generated successfully.",
                 "status": 200,
-                "access_token": access_token, 
+                "access_token": access_token,
                 "refresh_token": refresh_token
             }), 200)
 
@@ -169,7 +171,7 @@ class RefreshResource(Resource):
         new_access_token = create_access_token(identity=current_user)
 
         return make_response(jsonify({
-                "message": "Token refreshed successfully.", 
-                "status": 200,
-                "access_token": new_access_token 
-            }), 200)
+            "message": "Token refreshed successfully.",
+            "status": 200,
+            "access_token": new_access_token
+        }), 200)

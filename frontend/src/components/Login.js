@@ -1,20 +1,53 @@
-import React, { useState } from "react"
-import { Form, Button } from 'react-bootstrap'
-import { Link } from "react-router-dom"
+import React, { useState } from 'react'
+import { Form, Button, Alert } from 'react-bootstrap'
+import { Link, useNavigate } from 'react-router-dom'
+import { useForm } from 'react-hook-form'
+import axios from 'axios'
+import { login } from '../Auth'
 
 const LoginPage = () => {
+    const [responseData, setResponseData] = useState('')
+    const [variant, setVariant] = useState('')
+    const [show, setShow] = useState(false)
 
-    const [username, setUsername] = useState('')
-    const [password, setPassword] = useState('')
+    const { register, watch, handleSubmit, reset, formState: { errors } } = useForm()
 
-    const loginSubmitForm = () => {
-        console.log("Logged form submitted.")
-        console.log("Following details were entered:")
-        console.log("Username:", username)
-        console.log("Password:", password)
+    const navigate = useNavigate()
+
+    // Hit flask API
+    const loginSubmitForm = (data) => {
+        console.log("Logged user form submitted. Following details were entered:")
+        console.log(data)
+
+        const body = JSON.stringify(data)
+        const headers = {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        }
+
+        axios.post('/user/login', body, { headers: headers })
+            .then(response => {
+                console.log("Success from fetching from signup endpoint")
+                console.log(response.data)
+                setResponseData(response.data.access_token)
+                login(response.data.access_token)
+
+                // Page you want re-direct to after login - right now its home page
+                navigate('/')
+            })
+            .catch(error => {
+                console.log("Error occured from fetching from login endpoint.")
+                console.log(error.response.data)
+                setResponseData(error.response.data)
+                // Show error message if login failed
+                setShow(true)
+                setVariant("danger")
+            })
+
+        reset()
     }
 
-    return(
+    return (
         <div className="container">
             <div className="form">
                 <h1>Get your tailored recommended content by logging in here.</h1>
@@ -22,23 +55,29 @@ const LoginPage = () => {
                     <Form.Group>
                         <Form.Label>Username</Form.Label>
                         <Form.Control type="text"
-                            value={username}
-                            name="username"
-                            onChange={(event) => { setUsername(event.target.value) }}
+                            {...register("username", { required: true })}
                         />
+                        {errors.username?.type === "required" && <span style={{ color: "red", fontSize: 14 }}>username is required</span>}
                     </Form.Group>
                     <br></br>
                     <Form.Group>
                         <Form.Label>Password</Form.Label>
                         <Form.Control type="password"
-                            value={password}
-                            name="password"
-                            onChange={(event) => { setPassword(event.target.value) }}
+                            {...register("password", { required: true })}
                         />
-                    </Form.Group>                    
+                        {errors.password?.type === "required" && <span style={{ color: "red", fontSize: 14 }}>password is required</span>}
+                    </Form.Group>
                     <br></br>
+                    {show ?
+                        <>
+                            <Alert key={variant} variant={variant} onClose={() => { setShow(false) }} dismissible>
+                                <p>{responseData.message}</p>
+                            </Alert>
+                        </>
+                        : <br></br>
+                    }
                     <Form.Group>
-                        <Button as="sub" variant="primary" onClick={loginSubmitForm}>
+                        <Button as="sub" variant="primary" onClick={handleSubmit(loginSubmitForm)}>
                             Login
                         </Button>
                     </Form.Group>
@@ -46,7 +85,7 @@ const LoginPage = () => {
                     <Form.Group>
                         <small>
                             New user? Signup <Link to='/signup'>here</Link> to unlock your tailored recommendations and begin your journey.
-                            </small>
+                        </small>
                     </Form.Group>
                 </form>
             </div>

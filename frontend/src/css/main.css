@@ -1,7 +1,12 @@
 .container {
     margin-top: 25px;
 }
+
 .form {
     margin: auto;
     width: 80%;
+}
+
+.profile {
+    margin: 20px;
 }

@@ -1,46 +1,49 @@
 import React, { useState } from 'react'
-import { Form, Button } from 'react-bootstrap'
+import { Form, Button, Alert } from 'react-bootstrap'
 import { Link } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
+import axios from 'axios'
 
 const SignupPage = () => {
-    const [username, setUsername] = useState('')
-    const [email, setEmail] = useState('')
-    const [password, setPassword] = useState('')
-    const [confirmPassword, setConfirmPassword] = useState('')
-    const [firstname, setFirstName] = useState('')
-    const [lastname, setLastName] = useState('')
-    const [age, setAge] = useState('')
     const [gender, setGender] = useState('')
-    const [height, setHeight] = useState('')
-    const [weight, setWeight] = useState('')
     const [illness, setIllness] = useState('')
+    const [responseData, setResponseData] = useState('')
+    const [variant, setVariant] = useState('')
+    const [show, setShow] = useState(false)
 
     const { register, watch, handleSubmit, reset, formState: { errors } } = useForm()
 
     const signupSubmitForm = (data) => {
         console.log("Sign-Up form submitted with below details.")
         const formData = {
-            gender:gender,
-            illness:illness
+            gender: gender,
+            illness: illness
         }
-        console.log({...data,...formData})
+        console.log({ ...data, ...formData })
 
         if (data.password === data.confirmPassword) {
-            const requestOptions = {
-                mode:'cors',
-                method: "POST",
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({...data,...formData})
+            const body = JSON.stringify({ ...data, ...formData })
+            const headers = {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
             }
 
-            fetch('http://localhost:5000/user/signup', requestOptions)
-            .then(response => response.json)
-            .then(data => console.log(data))
-            .catch(error => console.log(error))
+            axios.post('/user/signup', body, { headers: headers })
+                .then(response => {
+                    console.log("Success from fetching from signup endpoint.")
+                    console.log(response.data)
+                    setResponseData(response.data)
+                    setShow(true)
+                    setVariant("success")
+                })
+                .catch(error => {
+                    console.log("Error occured from fetching from signup endpoint")
+                    console.log(error.response.data)
+                    setResponseData(error.response.data)
+                    setShow(true)
+                    setVariant("danger")
+                })
+
             reset()
         }
         else {
@@ -141,7 +144,7 @@ const SignupPage = () => {
                             <option>Select which suits you.</option>
                             <option value={"Male"}>Male</option>
                             <option value={"Female"}>Female</option>
-                            
+
                         </Form.Control>
                     </Form.Group>
                     <br></br>
@@ -177,6 +180,17 @@ const SignupPage = () => {
                         </Form.Control>
                     </Form.Group>
                     <br></br>
+                    {show ?
+                        <>
+                            <Alert key={variant} variant={variant} onClose={() => { setShow(false) }} dismissible>
+                                <p>{responseData.message}</p>
+                                {variant === "success" &&
+                                    <p>Login <Link to='/login'>now</Link> to get started on your journey.</p>
+                                }
+                            </Alert>
+                        </>
+                        : <br></br>
+                    }
                     <Form.Group>
                         <Button as="sub" variant="primary" onClick={handleSubmit(signupSubmitForm)}>
                             Signup
