@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { Form, Button, Alert } from 'react-bootstrap'
 import { Link, useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
@@ -80,9 +80,7 @@ const LoginPage = () => {
                         : <br></br>
                     }
                     <Form.Group>
-                        <Button as="sub" variant="primary" onClick={handleSubmit(loginSubmitForm)}>
-                            Login
-                        </Button>
+                        <Button as="sub" variant="primary" onClick={handleSubmit(loginSubmitForm)}>Login</Button>
                     </Form.Group>
                     <br></br>
                     <Form.Group>

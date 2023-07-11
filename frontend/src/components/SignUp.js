@@ -199,7 +199,7 @@ const SignupPage = () => {
                     <br></br>
                     <Form.Group>
                         <small>
-                            Existing user? Sign in <Link to='/login'>here</Link> to pick up where you left off and view your tailored recommendations.
+                            Existing user? Login <Link to='/login'>here</Link> to pick up where you left off and view your tailored recommendations.
                         </small>
                     </Form.Group>
                 </form>

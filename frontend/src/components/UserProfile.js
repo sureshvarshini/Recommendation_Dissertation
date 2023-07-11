@@ -1,7 +1,7 @@
 import React from 'react'
 import { Card, Modal, Button } from 'react-bootstrap'
 
-const UserProfile = ({ Username, Firstname, Lastname, Email, Gender, Age, Height, Weight, Illness, onClick }) => {
+const UserProfile = ({ Username, Firstname, Lastname, Email, Gender, Age, Height, Weight, Illness, onClick, onDelete }) => {
     return (
         <Card className='user profile'>
             <Card.Body>
@@ -15,6 +15,8 @@ const UserProfile = ({ Username, Firstname, Lastname, Email, Gender, Age, Height
                 <h5>Weight: {Weight}</h5>
                 <h5>Illness: {Illness}</h5>
                 <Button variant='primary' onClick={onClick}>Update</Button>
+                {' '}
+                <Button variant='danger' onClick={onDelete}>Delete Account</Button>
             </Card.Body>
         </Card>
     )

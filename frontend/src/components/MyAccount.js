@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react'
 import { Form, Button, Modal } from 'react-bootstrap'
+import { useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import axios from 'axios'
+import { logout } from '../Auth'
 import UserProfile from './UserProfile'
 
 const MyAccountPage = () => {
@@ -10,13 +12,17 @@ const MyAccountPage = () => {
     const [userProfile, setUserProfile] = useState('')
     const [show, setShow] = useState('')
     const { register, watch, handleSubmit, reset, setValue, formState: { errors } } = useForm()
+    const navigate = useNavigate()
+
+    let accessToken = localStorage.getItem('REACT_TOKEN_AUTH_KEY')
+    let userId = localStorage.getItem('id')
 
     const closeModal = () => {
         setShow(false)
     }
 
     const showModal = (id) => {
-        console.log("inside show modal")
+        console.log('Update button pressed.')
         console.log(id)
         setValue('firstname', userProfile.Firstname)
         setValue('lastname', userProfile.Lastname)
@@ -26,6 +32,28 @@ const MyAccountPage = () => {
         setShow(true)
     }
 
+    const deleteUser = (id) => {
+        console.log('Delete button pressed.')
+        console.log(id)
+
+        const headers = {
+            'Authorization': `Bearer ${JSON.parse(accessToken)}`
+        }
+        axios.delete(`/user/${userId}`, { headers: headers })
+            .then(response => {
+                console.log("Success deleting the user profile.")
+                console.log(response.data)
+
+                // logout & redirect to end user page
+                logout()
+                navigate('/enduser')
+            }).catch(error => {
+                console.log("Error occured while deleting user profile.")
+                console.log(error.response)
+            })
+
+    }
+
     const updateUser = (data) => {
         console.log('Updated user profile details submitted.')
         const formData = {
@@ -33,8 +61,6 @@ const MyAccountPage = () => {
             illness: illness
         }
         console.log({ ...data, ...formData })
-        const accessToken = localStorage.getItem('REACT_TOKEN_AUTH_KEY')
-        const userId = localStorage.getItem('id')
         const headers = {
             'Accept': 'application/json',
             'Content-Type': 'application/json',
@@ -56,8 +82,6 @@ const MyAccountPage = () => {
             })
     }
 
-    const accessToken = localStorage.getItem('REACT_TOKEN_AUTH_KEY')
-    const userId = localStorage.getItem('id')
     const headers = {
         'Authorization': `Bearer ${JSON.parse(accessToken)}`
     }
@@ -161,9 +185,7 @@ const MyAccountPage = () => {
                             </Form.Control>
                         </Form.Group>
                         <Form.Group>
-                            <Button as="sub" variant="primary" onClick={handleSubmit(updateUser)}>
-                                Save
-                            </Button>
+                            <Button as="sub" variant="primary" onClick={handleSubmit(updateUser)}>Save</Button>
                         </Form.Group>
                         <br></br>
                     </form>
@@ -181,6 +203,7 @@ const MyAccountPage = () => {
                 Weight={userProfile.Weight}
                 Illness={userProfile.Illness}
                 onClick={() => { showModal(userProfile.id) }}
+                onDelete={() => { deleteUser(userProfile.id) }}
             />
         </>
     )

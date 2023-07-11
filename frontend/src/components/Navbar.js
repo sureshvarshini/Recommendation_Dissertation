@@ -1,6 +1,5 @@
 // This file will hold all the navigation bar components which will be in link format
-
-import React, { useState } from 'react'
+import React from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth, logout } from '../Auth'
 
@@ -12,7 +11,7 @@ const LoggedInLinks = () => {
         <Link className="nav-link active" to="/">Home</Link>
       </li>
       <li className="nav-item">
-        <a className="nav-link active" href='#' onClick={() => { logout() }}>Logout</a>
+        <a className="nav-link active" href='/' onClick={() => { logout() }}>Logout</a>
       </li>
       <li className="nav-item">
         <Link className="nav-link active" to="/myaccount">My Account</Link>
