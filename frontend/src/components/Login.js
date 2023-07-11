@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Form, Button, Alert } from 'react-bootstrap'
 import { Link, useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
@@ -31,6 +31,9 @@ const LoginPage = () => {
                 console.log(response.data)
                 setResponseData(response.data.access_token)
                 login(response.data.access_token)
+
+                // Set the logged in user id in local storage - for accessing details in my account page
+                localStorage.setItem('id', response.data.id);
 
                 // Page you want re-direct to after login - right now its home page
                 navigate('/')

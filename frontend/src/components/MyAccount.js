@@ -9,39 +9,67 @@ const MyAccountPage = () => {
     const [illness, setIllness] = useState('')
     const [userProfile, setUserProfile] = useState('')
     const [show, setShow] = useState('')
-    const { register, watch, handleSubmit, reset, formState: { errors } } = useForm()
+    const { register, watch, handleSubmit, reset, setValue, formState: { errors } } = useForm()
 
     const closeModal = () => {
         setShow(false)
     }
 
     const showModal = (id) => {
+        console.log("inside show modal")
+        console.log(id)
+        setValue('firstname', userProfile.Firstname)
+        setValue('lastname', userProfile.Lastname)
+        setValue('age', userProfile.Age)
+        setValue('height', userProfile.Height)
+        setValue('weight', userProfile.Weight)
         setShow(true)
     }
 
     const updateUser = (data) => {
+        console.log('Updated user profile details submitted.')
         const formData = {
             gender: gender,
             illness: illness
         }
         console.log({ ...data, ...formData })
+        const accessToken = localStorage.getItem('REACT_TOKEN_AUTH_KEY')
+        const userId = localStorage.getItem('id')
+        const headers = {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${JSON.parse(accessToken)}`
+        }
+        const body = JSON.stringify({ ...data, ...formData })
+
+        axios.put(`/user/${userId}`, body, { headers: headers })
+            .then(response => {
+                console.log("Success updating the user profile.")
+                console.log(response.data)
+                setUserProfile(response.data)
+                // reload the page after the details are updated
+                const reload = window.location.reload()
+                reload()
+            }).catch(error => {
+                console.log("Error occured while updating user profile.")
+                console.log(error.response)
+            })
     }
 
     const accessToken = localStorage.getItem('REACT_TOKEN_AUTH_KEY')
+    const userId = localStorage.getItem('id')
     const headers = {
         'Authorization': `Bearer ${JSON.parse(accessToken)}`
     }
     useEffect(() => {
-        axios.get('/user/5', { headers: headers })
+        axios.get(`/user/${userId}`, { headers: headers })
             .then(response => {
                 console.log("Success fetching the user profile.")
                 console.log(response.data)
                 setUserProfile(response.data)
-                console.log('user id')
             }).catch(error => {
                 console.log("Error occured while fetching user profile.")
                 console.log(error.response)
-                console.log(`Bearer ${JSON.parse(accessToken)}`)
             })
     }, [])
 
@@ -58,26 +86,19 @@ const MyAccountPage = () => {
                     <form>
                         <Form.Group>
                             <Form.Label>Username</Form.Label>
-                            <Form.Control type="text" placeholder={userProfile.Username} disabled readOnly/>
-                            <span style={{ color: "red", fontSize: 14 }}>username cannot be modified</span>
+                            <Form.Control type="text" placeholder={userProfile.Username} disabled readOnly />
+                            <span style={{ color: "green", fontSize: 14 }}>username cannot be modified</span>
                         </Form.Group>
                         <br></br>
                         <Form.Group>
                             <Form.Label>Email</Form.Label>
-                            <Form.Control type="email" placeholder="Your email address here."
-                                {...register("email", {
-                                    validate: {
-                                        matchPattern: (v) =>
-                                            /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/.test(v)
-                                    }
-                                })}
-                            />
-                            {errors.email?.type === "matchPattern" && <span style={{ color: "red", fontSize: 14 }}>email address should be valid</span>}
+                            <Form.Control type="email" placeholder={userProfile.Email} disabled readOnly />
+                            <span style={{ color: "green", fontSize: 14 }}>email address cannot be modified</span>
                         </Form.Group>
                         <br></br>
                         <Form.Group>
                             <Form.Label>First Name</Form.Label>
-                            <Form.Control type="text" placeholder="Your first name here."
+                            <Form.Control type="text"
                                 {...register("firstname", { minLength: 3, maxLength: 50 })}
                             />
                             {errors.firstname?.type === "minLength" && <span style={{ color: "red", fontSize: 14 }}>firstname should have minimum of 3 characters</span>}
@@ -86,7 +107,7 @@ const MyAccountPage = () => {
                         <br></br>
                         <Form.Group>
                             <Form.Label>Last Name</Form.Label>
-                            <Form.Control type="text" placeholder="Your last name here."
+                            <Form.Control type="text"
                                 {...register("lastname", { minLength: 3, maxLength: 50 })}
                             />
                             {errors.lastname?.type === "minLength" && <span style={{ color: "red", fontSize: 14 }}>lastname should have minimum of 3 characters</span>}
@@ -95,7 +116,7 @@ const MyAccountPage = () => {
                         <br></br>
                         <Form.Group>
                             <Form.Label>Age</Form.Label>
-                            <Form.Control type="number" placeholder="Your age here." min='1' max='150'
+                            <Form.Control type="number" min='1' max='150'
                                 {...register("age", { valueAsNumber: true })}
                             />
                         </Form.Group>
@@ -116,7 +137,6 @@ const MyAccountPage = () => {
                             <Form.Label>Height</Form.Label>
                             <Form.Control type="number"
                                 min='1'
-                                placeholder="Your height here (in cm)."
                                 {...register("height", { valueAsNumber: true })}
                             />
                         </Form.Group>
@@ -125,7 +145,6 @@ const MyAccountPage = () => {
                             <Form.Label>Weight</Form.Label>
                             <Form.Control type="number"
                                 min='1'
-                                placeholder="Your weight here (in kg)."
                                 {...register("weight", { valueAsNumber: true })}
                             />
                         </Form.Group>

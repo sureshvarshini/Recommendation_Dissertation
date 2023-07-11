@@ -62,11 +62,12 @@ class UserResource(Resource):
         if weight:
             db_user.weight = weight
         if illness:
-            db_user.firstname = illness
+            db_user.illness = illness
 
         db_user.save()
 
         return make_response(jsonify({
+            "request": data,
             "message": "User details updated successfully!",
             "Status": 200
         }), 200)
@@ -153,7 +154,8 @@ class LoginUserResource(Resource):
                 "message": "Token generated successfully.",
                 "status": 200,
                 "access_token": access_token,
-                "refresh_token": refresh_token
+                "refresh_token": refresh_token,
+                "id": db_user.id
             }), 200)
 
         else:
