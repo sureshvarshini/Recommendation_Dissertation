@@ -105,3 +105,7 @@ class Rating(db.Model):
     @classmethod
     def fetch_by_user_id(self, id):
         return Rating.query.filter_by(user_id=id).all()
+    
+    def save(self):
+        db.session.add(self)
+        db.session.commit()
