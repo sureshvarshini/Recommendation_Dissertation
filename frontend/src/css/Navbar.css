@@ -1,0 +1,17 @@
+body {
+    text-transform: capitalize;
+    background-image: url("../assets/Homepage.jpg");
+    background-size: cover;
+    background-repeat: no-repeat;
+}
+
+img {
+    max-width: 50%;
+}
+
+.navbar {
+    width: 100%;
+    height: 80px;
+    display: flex;
+    flex-direction: row;
+}

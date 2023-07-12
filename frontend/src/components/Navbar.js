@@ -2,6 +2,8 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth, logout } from '../Auth'
+import '../css/Navbar.css'
+import logo from '../assets/AssistWiseLogo.png'
 
 // The links/buttons that are available to a logged in user.
 const LoggedInLinks = () => {
@@ -43,15 +45,16 @@ const Navbar = () => {
 
   return (
     <nav className="navbar navbar-expand-lg navbar-dark bg-dark">
+      <div className='leftside'>
+        <img src={logo}></img>
+      </div>
       <div className="container-fluid">
         <Link className="navbar-brand" to="/">AssistWise</Link>
         <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
           <span className="navbar-toggler-icon"></span>
         </button>
-        <div className="collapse navbar-collapse" id="navbarNav">
-          <ul className="navbar-nav">
-            {isUserLoggedIn ? <LoggedInLinks /> : <LoggedOutLinks />}
-          </ul>
+        <div className="rightside" id="navbarNav">
+          <ul className="navbar-nav">{isUserLoggedIn ? <LoggedInLinks /> : <LoggedOutLinks />}</ul>
         </div>
       </div>
     </nav>
