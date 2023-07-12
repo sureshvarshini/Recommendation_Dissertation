@@ -2,7 +2,7 @@ from flask_restful import Resource
 from flask_jwt_extended import jwt_required, JWTManager, get_jwt_identity, create_access_token, create_refresh_token
 from flask import request, jsonify, make_response
 from werkzeug.security import generate_password_hash, check_password_hash
-from models.User import User
+from models.Model import User
 
 
 class UserResource(Resource):
