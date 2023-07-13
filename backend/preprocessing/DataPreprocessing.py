@@ -10,9 +10,9 @@ def clean_food_csv():
 
     # Set location to Datasets
     dataset_location = current_working_directory + \
-        '\\DataCleaning\\datasets\\Food_recommender\\'
+        '\\preprocessing\\datasets\\Food_recommender\\'
 
-    # Source Dataset location = D:\Varshini\CourseWork\Dissertation\Implementation\Recommendation_Dissertation\backend\DataCleaning\datasets\Food_recommender\
+    # Source Dataset location = D:\Varshini\CourseWork\Dissertation\Implementation\Recommendation_Dissertation\backend\preprocessing\datasets\Food_recommender\
 
     # Read the entire CSV
     nutrition_data = pd.read_csv(dataset_location + 'nutrition.csv')
@@ -55,8 +55,7 @@ def clean_food_csv():
 
     # Write the cleaned dataset to a new csv
     print('Writing cleaned data to a new csv:\n')
-    output_file_path = current_working_directory + \
-        '\\DataCleaning\\cleanedDatasets\\'
+    output_file_path = current_working_directory + '\\preprocessing\\cleanedDatasets\\'
     subset_nutrition_data.to_csv(
         output_file_path + 'nutrition_cleaned.csv', index=False)
 
@@ -68,9 +67,9 @@ def clean_rating_csv():
 
     # Set location to Datasets
     dataset_location = current_working_directory + \
-        '\\DataCleaning\\datasets\\Food_recommender\\'
+        '\\preprocessing\\datasets\\Food_recommender\\'
 
-    # Source Dataset location = D:\Varshini\CourseWork\Dissertation\Implementation\Recommendation_Dissertation\backend\DataCleaning\datasets\Food_recommender\
+    # Source Dataset location = D:\Varshini\CourseWork\Dissertation\Implementation\Recommendation_Dissertation\backend\preprocessing\datasets\Food_recommender\
 
     # Read the entire CSV
     rating_data = pd.read_csv(dataset_location + 'ratings_small.csv')
@@ -100,6 +99,6 @@ def clean_rating_csv():
     # Write the cleaned dataset to a new csv
     print('Writing cleaned data to a new csv:\n')
     output_file_path = current_working_directory + \
-        '\\DataCleaning\\cleanedDatasets\\'
+        '\\preprocessing\\cleanedDatasets\\'
     subset_rating_data.to_csv(
         output_file_path + 'ratings_cleaned.csv', index=False)

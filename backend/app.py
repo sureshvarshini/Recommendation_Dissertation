@@ -7,7 +7,7 @@ from api.TestApiHandler import TestApiHandler
 from api.UserApiHandler import UserResource, SignupUserResource, LoginUserResource, RefreshResource
 from api.RecommendationApiHandler import FoodRecommendationResource, AddRatingResource, ViewRatingResource
 from config import Config
-from DataCleaning.DataPreprocessing import clean_food_csv, clean_rating_csv
+from preprocessing.DataPreprocessing import clean_food_csv, clean_rating_csv
 from ImportFood import import_food_csv_data
 from ImportRatings import import_rating_csv_data
 

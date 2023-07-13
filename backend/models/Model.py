@@ -86,7 +86,7 @@ class Food(db.Model):
         self.fat = fat
 
     def __repr__(self):
-        return f"Name of the food {self.name}: Calories: {self.calories}"
+        return f"Name of the food: {self.name}: Calories: {self.calories}"
 
     @classmethod
     def fetch_by_id(self, id):
@@ -102,9 +102,21 @@ class Rating(db.Model):
     food_id = db.Column(db.Integer(), nullable=False)
     rating = db.Column(db.Integer(), nullable=False)
 
+    def as_dictionary(self):
+        return {column.name: getattr(self, column.name) for column in self.__table__.columns}
+
     @classmethod
     def fetch_by_user_id(self, id):
         return Rating.query.filter_by(user_id=id).all()
+    
+    def fetch_all_ratings():
+        return [each_rating.as_dictionary() for each_rating in Rating.query.all()]
+    
+    def fetch_distinct_user():
+        return db.session.query(Rating.user_id).distinct().all()
+    
+    def fetch_distinct_food():
+        return db.session.query(Rating.food_id).distinct().all()
     
     def save(self):
         db.session.add(self)

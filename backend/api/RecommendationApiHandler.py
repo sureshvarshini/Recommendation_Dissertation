@@ -1,14 +1,21 @@
 from flask_restful import Resource
 from flask import request, jsonify, make_response
 from models.Model import Food, Rating
+from recommendation.RecommendFood import get_food_recommendations
 
 
 class FoodRecommendationResource(Resource):
     def get(self, id):
-        db_food = Food.fetch_by_id(id=id)
+        # id - user ID
+        # Recommendation code goes here
+        similar_food_ids = get_food_recommendations(id)
 
-        if db_food is not None:
-            return make_response(jsonify({
+        food_response = []
+
+        for food_id in similar_food_ids:
+            db_food = Food.fetch_by_id(id=food_id)
+
+            food_object = {
                 "id": db_food.id,
                 "Name": db_food.name,
                 "Calories": db_food.calories,
@@ -23,13 +30,13 @@ class FoodRecommendationResource(Resource):
                 "Fiber": db_food.fiber,
                 "Sugars": db_food.sugars,
                 "Fat": db_food.fat
+            }
 
-            }), 200)
+            food_response.append(food_object)
 
         return make_response(jsonify({
-            "message": f"Food '{id}' does not exist.",
-            "status": 404
-        }), 404)
+            "recommended_foods": food_response
+        }), 201)
 
 
 class AddRatingResource(Resource):

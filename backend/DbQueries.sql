@@ -12,3 +12,8 @@ db.drop_all()
 /*Enter inside SQL shell to check for tables created - after db is created*/
 sqlite3 food.db
 .tables /* Should see your model(table) name for `food` database*/
+
+/*SQL Queries*/
+/*Fetch distinct user_id and food_id*/
+SELECT DISTINCT user_id FROM rating; 
+SELECT DISTINCT food_id FROM rating; 
