@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from pulp import LpVariable, LpProblem, LpMinimize, lpSum, LpStatus, PULP_CBC_CMD, LpSolverDefault
+from pulp import LpVariable, LpProblem, LpMinimize, LpMaximize, lpSum, lpDot, LpStatus, PULP_CBC_CMD, LpSolverDefault
 from scipy.sparse.linalg import svds
 
 activity_levels = {
@@ -10,9 +10,15 @@ activity_levels = {
     'very_active': 2.1
 }
 
+week_days = ['Monday', 'Tuesday', 'Wednesday',
+             'Thursday', 'Friday', 'Saturday', 'Sunday']
+
+meal_types = ['Breakfast', 'Morning Snack',
+              'Lunch', 'Afternoon Snack', 'Dinner']
+
 
 def daily_calorie_intake(user):
-    # change to get activity level from user object
+    # TODO: change to get activity level from user object
     activity_factor = activity_levels.get('sedentary')
     if (user.gender.lower() == "male"):
         calories_male = ((10 * user.weight) + (6.25 * user.height) -
@@ -65,6 +71,7 @@ def extract_macro_nutrients(calories, user):
     proteins_upper = (1.5 * user.weight)
 
     macro_nutrients = {
+        'calories': round(calories),
         'carbohydrates_lower': round(carbohydrates_lower),
         'carbohydrates_upper': round(carbohydrates_upper),
         'fats_lower': round(fats_lower),
@@ -84,90 +91,125 @@ def extract_macro_nutrients(calories, user):
     return macro_nutrients
 
 
-def choose_foods(calories, macro_nutrients_ratio, foods):
-
+def choose_foods(macro_nutrients_ratio, foods):
     # This function finds all foods that fall under the linear conditions of calories and macro nutrients
-
     foods_df = pd.DataFrame(foods)
 
-    # Creating list for all food items present in DB
-    all_food_names = list(foods_df['name'])
-    all_calories = dict(zip(all_food_names, foods_df['calories']))
-    all_carbohydrates = dict(zip(all_food_names, foods_df['carbohydrate']))
-    all_fats = dict(zip(all_food_names, foods_df['fat']))
-    all_proteins = dict(zip(all_food_names, foods_df['protein']))
-    all_fibers = dict(zip(all_food_names, foods_df['fiber']))
-    # all_vitamin_a = dict(zip(all_food_names, foods_df['vitamin_a']))
-    all_vitamin_c = dict(zip(all_food_names, foods_df['vitamin_c']))
-    all_vitamin_d = dict(zip(all_food_names, foods_df['vitamin_d']))
-    all_calcium = dict(zip(all_food_names, foods_df['calcium']))
-    # all_folate = dict(zip(all_food_names, foods_df['folate']))
+    # Choose random foods for 7 days
+    weekly_menu = prepare_weekly_menu(foods=foods_df)
+    final_food_choices = []
 
-    food_equation = LpVariable.dicts(
-        'foods', all_food_names, lowBound=0, cat='Continuous')
-    # Define problem & add constraints
-    problem = LpProblem("Food calories", LpMinimize)
+    for day in week_days:
 
-    # Objective statement - calorie should be consumed so much
-    problem += lpSum([all_calories[f] * food_equation[f]
-                     for f in all_food_names]) == calories, "TotalCalories"
+        day_menu = pd.DataFrame(weekly_menu[day])
+        print(f'Constructing food model: {day}')
 
-    # Carbohydrate constraints
-    problem += lpSum([all_carbohydrates[f] * food_equation[f] for f in all_food_names]
-                     ) >= macro_nutrients_ratio.get('carbohydrates_lower'), "CarbohydratesMinimum"
-    problem += lpSum([all_carbohydrates[f] * food_equation[f] for f in all_food_names]
-                     ) <= macro_nutrients_ratio.get('carbohydrates_upper'), "CarbohydratesMaximum"
+        # Creating list for all food items present in DB
+        all_food_names = list(day_menu['name'])
+        all_calories = dict(zip(all_food_names, day_menu['calories']))
+        all_carbohydrates = dict(zip(all_food_names, day_menu['carbohydrate']))
+        all_fats = dict(zip(all_food_names, day_menu['fat']))
+        all_proteins = dict(zip(all_food_names, day_menu['protein']))
+        all_fibers = dict(zip(all_food_names, day_menu['fiber']))
+        # all_vitamin_a = dict(zip(all_food_names, day_menu['vitamin_a']))
+        all_vitamin_c = dict(zip(all_food_names, day_menu['vitamin_c']))
+        all_vitamin_d = dict(zip(all_food_names, day_menu['vitamin_d']))
+        all_calcium = dict(zip(all_food_names, day_menu['calcium']))
+        # all_folate = dict(zip(all_food_names, day_menu['folate']))
 
-    # Fat constraints
-    problem += lpSum([all_fats[f] * food_equation[f] for f in all_food_names]
-                     ) >= macro_nutrients_ratio.get('fats_lower'), "FatsMinimum"
-    problem += lpSum([all_fats[f] * food_equation[f] for f in all_food_names]
-                     ) <= macro_nutrients_ratio.get('fats_upper'), "FatsMaximum"
+        # Define objective sense - minimize fat intake
+        problem = LpProblem(name='calories', sense=LpMinimize)
 
-    # Proteins constraints
-    problem += lpSum([all_proteins[f] * food_equation[f] for f in all_food_names]
-                     ) >= macro_nutrients_ratio.get('proteins_lower'), "ProteinsMinimum"
-    problem += lpSum([all_proteins[f] * food_equation[f] for f in all_food_names]
-                     ) <= macro_nutrients_ratio.get('proteins_upper'), "ProteinsMaximum"
+        # Declare variables for each menu item
+        equation_variables = LpVariable.dicts(
+            name='Food', indices=all_food_names, lowBound=0, cat='Continuous')
 
-    # Fiber constraints
-    problem += lpSum([all_fibers[f] * food_equation[f]
-                     for f in all_food_names]) >= macro_nutrients_ratio.get('fiber'), "Fiber"
+        # Objective statement - calculate fat
+        problem += lpSum([all_calories[f] * equation_variables[f]
+                          for f in all_food_names]), "TotalCalories"
 
-    # Vitamin_A constraints
-    # problem += lpSum([all_vitamin_a[f] * food_equation[f] for f in all_food_names]) == macro_nutrients_ratio.get('vitamin_a'), "VitaminA"
+        # Calorie constraints
+        problem += lpSum([all_calories[f] * equation_variables[f] for f in all_food_names]
+                         ) >= macro_nutrients_ratio['calories']-2, "CaloriesMinimum"
+        problem += lpSum([all_calories[f] * equation_variables[f] for f in all_food_names]
+                         ) <= macro_nutrients_ratio['calories']+2, "CaloriesMaximum"
 
-    # Vitamin_C constraints
-    problem += lpSum([all_vitamin_c[f] * food_equation[f]
-                     for f in all_food_names]) >= macro_nutrients_ratio.get('vitamin_c'), "VitaminC"
+        # Carbohydrate constraints
+        problem += lpSum([all_carbohydrates[f] * equation_variables[f] for f in all_food_names]
+                         ) >= macro_nutrients_ratio['carbohydrates_lower'], "CarbohydratesMinimum"
+        problem += lpSum([all_carbohydrates[f] * equation_variables[f] for f in all_food_names]
+                         ) <= macro_nutrients_ratio['carbohydrates_upper'], "CarbohydratesMaximum"
 
-    # Vitamin_D constraints
-    problem += lpSum([all_vitamin_d[f] * food_equation[f] for f in all_food_names]
-                     ) >= macro_nutrients_ratio.get('vitamin_c_lower'), "VitaminDMinimum"
-    problem += lpSum([all_vitamin_d[f] * food_equation[f] for f in all_food_names]
-                     ) <= macro_nutrients_ratio.get('vitamin_c_upper'), "VitaminDMaximum"
+        # Fat constraints
+        problem += lpSum([all_fats[f] * equation_variables[f] for f in all_food_names]
+                         ) >= macro_nutrients_ratio['fats_lower'], "FatsMinimum"
+        problem += lpSum([all_fats[f] * equation_variables[f] for f in all_food_names]
+                         ) <= macro_nutrients_ratio['fats_upper'], "FatsMaximum"
 
-    # Calcium constraints
-    problem += lpSum([all_calcium[f] * food_equation[f] for f in all_food_names]
-                     ) >= macro_nutrients_ratio.get('calcium_lower'), "CalciumMinimum"
-    problem += lpSum([all_calcium[f] * food_equation[f] for f in all_food_names]
-                     ) <= macro_nutrients_ratio.get('calcium_upper'), "CalciumMaximum"
+        # Proteins constraints
+        problem += lpSum([all_proteins[f] * equation_variables[f] for f in all_food_names]
+                         ) >= macro_nutrients_ratio['proteins_lower'], "ProteinsMinimum"
+        problem += lpSum([all_proteins[f] * equation_variables[f] for f in all_food_names]
+                         ) <= macro_nutrients_ratio['proteins_upper'], "ProteinsMaximum"
 
-    # Folate constraints
-    # problem += lpSum([all_folate[f] * food_equation[f] for f in all_food_names]) >= macro_nutrients_ratio.get('folate'), "Folate"
+        # Fiber constraints
+        problem += lpSum([all_fibers[f] * equation_variables[f]
+                          for f in all_food_names]) >= macro_nutrients_ratio['fiber'], "Fiber"
 
-    LpSolverDefault.msg = 1
-    # Solve the equation
-    problem.solve()
-    print("Problem Status:", LpStatus[problem.status])
+        # Vitamin_A constraints
+        # problem += lpSum([all_vitamin_a[f] * equation_variables[f] for f in all_food_names]) >= macro_nutrients_ratio['vitamin_a'], "VitaminA"
 
-    for v in problem.variables():
-        if v.varValue > 0:
-            print(v.name, "=", v.varValue)
+        # Vitamin_C constraints
+        problem += lpSum([all_vitamin_c[f] * equation_variables[f]
+                          for f in all_food_names]) >= macro_nutrients_ratio['vitamin_c']-1, "VitaminCMinimum"
+        problem += lpSum([all_vitamin_c[f] * equation_variables[f]
+                          for f in all_food_names]) <= macro_nutrients_ratio['vitamin_c']+1, "VitaminCMaximum"
+
+        # Vitamin_D constraints
+        problem += lpSum([all_vitamin_d[f] * equation_variables[f] for f in all_food_names]
+                         ) >= macro_nutrients_ratio['vitamin_d_lower'], "VitaminDMinimum"
+        problem += lpSum([all_vitamin_d[f] * equation_variables[f] for f in all_food_names]
+                         ) <= macro_nutrients_ratio['vitamin_d_upper'], "VitaminDMaximum"
+
+        # Calcium constraints
+        problem += lpSum([all_calcium[f] * equation_variables[f] for f in all_food_names]
+                         ) >= macro_nutrients_ratio['calcium_lower'], "CalciumMinimum"
+        problem += lpSum([all_calcium[f] * equation_variables[f] for f in all_food_names]
+                         ) <= macro_nutrients_ratio['calcium_upper'], "CalciumMaximum"
+
+        # # Folate constraints
+        # problem += lpSum([all_folate[f] * equation_variables[f] for f in all_food_names]) >= macro_nutrients_ratio['folate'], "Folate"
+
+        # Solve the equation
+        status = problem.solve()
+        print("Problem Status:", LpStatus[status])  # expected - Optimal
+
+        recommended_foods = {}
+        for v in problem.variables():
+            if v.varValue > 0:
+                recommended_foods[v.name] = v.varValue * 100
+        final_food_choices.append(recommended_foods)
+
+    return dict(zip(week_days, final_food_choices))
 
 
-# This function returns the top 5 foods rated high by the user
+def prepare_weekly_menu(foods):
+    # Splitting the dataset for 7-day meal plan
+    split_values = np.linspace(0, len(foods), 8).astype(int)
+    split_values[-1] = split_values[-1]-1
+
+    shuffled_food_data = foods.sample(
+        frac=1).reset_index().drop('index', axis=1)
+    daily_foods = []
+    for i in range(len(split_values)-1):
+        daily_foods.append(
+            shuffled_food_data.loc[split_values[i]:split_values[i+1]])
+
+    return (dict(zip(week_days, daily_foods)))
+
+
 def get_food_recommendations(id, ratings):
+    # This function returns the top 5 foods rated high by the user
     ratings_df = pd.DataFrame(ratings)
 
     data_matrix = pd.pivot_table(

@@ -7,19 +7,18 @@ from recommendation.RecommendFood import get_food_recommendations, daily_calorie
 class FoodRecommendationResource(Resource):
     def get(self, id):
         user = User.fetch_by_id(id=id)
-        
+
         # Calculate the calorie intake and macro nutrients split to consume per day - customized to each person
         calories = daily_calorie_intake(user)
-        print("----------------> CALORIES")
-        print(calories)
-
-        macro_nutrients_ratio = extract_macro_nutrients(calories=calories, user=user)
-        print("-------------")
-        print(macro_nutrients_ratio)
+        macro_nutrients_ratio = extract_macro_nutrients(
+            calories=calories, user=user)
 
         # Pick out foods that fall under calculated calories and macro nutrients
         foods = Food.fetch_all_foods()
-        choose_foods(calories, macro_nutrients_ratio, foods)
+        recommend_foods = choose_foods(macro_nutrients_ratio=macro_nutrients_ratio, foods=foods)
+
+        print("-----------")
+        print(recommend_foods)
 
         # Return food recommendations
         ratings = Rating.fetch_all_ratings()
@@ -51,7 +50,7 @@ class FoodRecommendationResource(Resource):
 
         return make_response(jsonify({
             "recommended_foods": food_response
-        }), 201)
+        }), 200)
 
 
 class AddRatingResource(Resource):

@@ -15,18 +15,18 @@ def navigate():
     driver = webdriver.Chrome(service=service, options=options)
     temp_list = []
     course_types = {
-        'course-116': 'Appetizers',
-        'course-117': 'Beverages',
-        'course-118': 'Breads',
-        'course-119': 'Breakfast',
-        'course-120': 'Desserts',
-        'course-121': 'Main',
-        'course-122': 'Salads',
-        'course-126': 'Sandwiches',
-        'course-123': 'Dressings',
-        'course-124': 'Sides',
-        'course-125': 'Snacks',
-        'course-127': 'Soups'
+        # 'course-116': 'Appetizers',
+        # 'course-117': 'Beverages',
+        # 'course-118': 'Breads',
+        # 'course-119': 'Breakfast',
+        # 'course-120': 'Desserts',
+        # 'course-121': 'Main',
+        # 'course-122': 'Salads',
+        # 'course-126': 'Sandwiches',
+        # 'course-123': 'Dressings',
+        # 'course-124': 'Sides',
+        'course-125': 'Snacks'
+        # 'course-127': 'Soups'
     }
 
     for key in course_types:
@@ -165,8 +165,8 @@ def navigate():
 
         # write scrapped data onto csv
         # TODO: NEEd to add '\\preprocessing
-        output_file_path = os.getcwd() + '\\datasets\\Food_recommender'
-        df.to_csv(output_file_path + name + '.csv', index=False)
+        output_file_path = os.getcwd() + '\\datasets\\Food_recommender\\'
+        df.to_csv(output_file_path + course_type_value + '.csv', index=False)
         print('Written successfully to csv')
     driver.quit()
 
