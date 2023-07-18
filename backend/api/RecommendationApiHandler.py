@@ -29,19 +29,15 @@ class FoodRecommendationResource(Resource):
         for food_id in similar_food_ids:
             db_food = Food.fetch_by_id(id=food_id)
 
-            print("--------")
-            print(db_food)
-
             food_object = {
                 "id": db_food.id,
                 "Name": db_food.name,
                 "Calories": db_food.calories,
-                "Folic Acid": db_food.folic_acid,
                 "Vitamin C": db_food.vitamin_c,
                 "Vitamin D": db_food.vitamin_d,
                 "Calcium": db_food.calcium,
                 "Protein": db_food.protein,
-                "Carbohydrate": db_food.carbohydrate,
+                "Carbohydrate": db_food.carbohydrates,
                 "Fiber": db_food.fiber,
                 "Sugars": db_food.sugars,
                 "Fat": db_food.fat

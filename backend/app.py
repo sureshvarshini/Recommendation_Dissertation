@@ -25,11 +25,10 @@ JWTManager(app)
 # csv_file = 'D:\\Varshini\\CourseWork\\Dissertation\\Implementation\\Github\\Recommendation_Dissertation\\backend\\preprocessing\\cleanedDatasets\\food_data_cleaned.csv'
 # import_food_csv_data(csv_file)
 
-clean_rating_csv()
+# clean_rating_csv()
 print('Importing rating csv to SQL database:\n')
 csv_file = 'D:\\Varshini\\CourseWork\\Dissertation\\Implementation\\Github\\Recommendation_Dissertation\\backend\\preprocessing\\cleanedDatasets\\ratings_cleaned.csv'
 import_rating_csv_data(csv_file)
-
 # <----- Till here ----->
 
 @app.route("/", defaults={'path':''})

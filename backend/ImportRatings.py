@@ -36,7 +36,7 @@ def import_rating_csv_data(csv_file):
     else:
         import_data = False
 
-    print(f'Previous data found: {import_data}')
+    print(f'Import data?: {import_data}')
 
     if (import_data):
         with open(csv_file, encoding='utf-8', newline='') as nutrition_file:
