@@ -1,12 +1,7 @@
 import pandas as pd
 import numpy as np
-import requests
-import urllib
-from urllib.request import urlopen
-from urllib.parse import urlencode
-import webbrowser
+from pulp import LpVariable, LpProblem, LpMinimize, lpSum, LpStatus, PULP_CBC_CMD, LpSolverDefault
 from scipy.sparse.linalg import svds
-from models.Model import Rating
 
 activity_levels = {
     'sedentary': 1.4,
@@ -18,15 +13,15 @@ activity_levels = {
 
 def daily_calorie_intake(user):
     # change to get activity level from user object
-    activity_factor = activity_levels.get('very_active')
+    activity_factor = activity_levels.get('sedentary')
     if (user.gender.lower() == "male"):
         calories_male = ((10 * user.weight) + (6.25 * user.height) -
                          (5 * user.age) + 5) * activity_factor
-        return calories_male
+        return round(calories_male)
     else:
         calories_female = ((10 * user.weight) +
                            (6.25 * user.height) - (5 * user.age) - 161) * activity_factor
-        return calories_female
+        return round(calories_female)
 
 
 def extract_macro_nutrients(calories, user):
@@ -35,69 +30,145 @@ def extract_macro_nutrients(calories, user):
         vitamin_a = 900  # mcg
         vitamin_c = 90  # mg
         if (user.age > 70):
-            calcium = 1200  # mg
-            vitamin_d = 20  # mcg
+            calcium_lower = 1200  # mg
+            vitamin_d_lower = 20  # mcg
         else:
-            calcium = 1000  # mg
-            vitamin_d = 15  # mcg
+            calcium_lower = 1000  # mg
+            vitamin_d_lower = 15  # mcg
+        calcium_upper = 2000  # mg
+
     else:  # For females
         fiber = 21  # g
         vitamin_a = 700  # mcg
         vitamin_c = 75  # mg
-        calcium = 1200  # mg
+        calcium_lower = 1200  # mg
+        calcium_upper = 2000  # mg
 
         if (user.age > 70):
-            vitamin_d = 20  # mcg
+            vitamin_d_lower = 20  # mcg
         else:
-            vitamin_d = 15  # mcg
+            vitamin_d_lower = 15  # mcg
+
+    vitamin_d_upper = 100  # mcg
+    folate = 400  # mcg
 
     # Carbs - g
-    carbohydrates = (0.45 * calories) / 4
+    carbohydrates_lower = (0.45 * calories) / 4
+    carbohydrates_upper = (0.65 * calories) / 4
 
     # Fats - g
-    fats = (0.3 * calories) / 9
+    fats_lower = (0.2 * calories) / 9
+    fats_upper = (0.35 * calories) / 9
 
     # Proteins - g
-    proteins = (1.2 * user.weight)
+    proteins_lower = (1.0 * user.weight)
+    proteins_upper = (1.5 * user.weight)
 
     macro_nutrients = {
-        'carbohydrates': carbohydrates,
-        'fats': fats,
-        'proteins': proteins,
-        'fiber': fiber,
-        'vitamin_a': vitamin_a,
-        'vitamin_c': vitamin_c,
-        'vitamin_d': vitamin_d,
-        'calcium': calcium
+        'carbohydrates_lower': round(carbohydrates_lower),
+        'carbohydrates_upper': round(carbohydrates_upper),
+        'fats_lower': round(fats_lower),
+        'fats_upper': round(fats_upper),
+        'proteins_lower': round(proteins_lower),
+        'proteins_upper': round(proteins_upper),
+        'fiber': round(fiber),
+        'vitamin_a': round(vitamin_a),
+        'vitamin_c': round(vitamin_c),
+        'vitamin_d_lower': round(vitamin_d_lower),
+        'vitamin_d_upper': round(vitamin_d_upper),
+        'calcium_lower': round(calcium_lower),
+        'calcium_upper': round(calcium_upper),
+        'folate': round(folate)
     }
 
     return macro_nutrients
 
-# def submit_form(user): - not working
 
-#     payload = urlencode({
-#         'Measurement Unit': 'Metric',
-#         'Sex': 'Female',
-#         'Age': 89,
-#         'Height': 180,
-#         'Weight': 70,
-#         'Activity level': 'Sedentary',
-#         'Pregnancy/Lactation status': 'Not Pregnant or Lactating'
-#     })
+def choose_foods(calories, macro_nutrients_ratio, foods):
 
-#     url = 'https://www.nal.usda.gov/human-nutrition-and-food-safety/dri-calculator' + '?' + payload
+    # This function finds all foods that fall under the linear conditions of calories and macro nutrients
 
-#     web_response = urlopen(url)
+    foods_df = pd.DataFrame(foods)
 
-#     print("----> WEB RESPONSE")
-#     print(str(web_response.getcode()))
-#     with open("results.html", "wb") as f:
-#         f.write(web_response.read())
-#     webbrowser.open("results.html")
+    # Creating list for all food items present in DB
+    all_food_names = list(foods_df['name'])
+    all_calories = dict(zip(all_food_names, foods_df['calories']))
+    all_carbohydrates = dict(zip(all_food_names, foods_df['carbohydrate']))
+    all_fats = dict(zip(all_food_names, foods_df['fat']))
+    all_proteins = dict(zip(all_food_names, foods_df['protein']))
+    all_fibers = dict(zip(all_food_names, foods_df['fiber']))
+    # all_vitamin_a = dict(zip(all_food_names, foods_df['vitamin_a']))
+    all_vitamin_c = dict(zip(all_food_names, foods_df['vitamin_c']))
+    all_vitamin_d = dict(zip(all_food_names, foods_df['vitamin_d']))
+    all_calcium = dict(zip(all_food_names, foods_df['calcium']))
+    # all_folate = dict(zip(all_food_names, foods_df['folate']))
+
+    food_equation = LpVariable.dicts(
+        'foods', all_food_names, lowBound=0, cat='Continuous')
+    # Define problem & add constraints
+    problem = LpProblem("Food calories", LpMinimize)
+
+    # Objective statement - calorie should be consumed so much
+    problem += lpSum([all_calories[f] * food_equation[f]
+                     for f in all_food_names]) == calories, "TotalCalories"
+
+    # Carbohydrate constraints
+    problem += lpSum([all_carbohydrates[f] * food_equation[f] for f in all_food_names]
+                     ) >= macro_nutrients_ratio.get('carbohydrates_lower'), "CarbohydratesMinimum"
+    problem += lpSum([all_carbohydrates[f] * food_equation[f] for f in all_food_names]
+                     ) <= macro_nutrients_ratio.get('carbohydrates_upper'), "CarbohydratesMaximum"
+
+    # Fat constraints
+    problem += lpSum([all_fats[f] * food_equation[f] for f in all_food_names]
+                     ) >= macro_nutrients_ratio.get('fats_lower'), "FatsMinimum"
+    problem += lpSum([all_fats[f] * food_equation[f] for f in all_food_names]
+                     ) <= macro_nutrients_ratio.get('fats_upper'), "FatsMaximum"
+
+    # Proteins constraints
+    problem += lpSum([all_proteins[f] * food_equation[f] for f in all_food_names]
+                     ) >= macro_nutrients_ratio.get('proteins_lower'), "ProteinsMinimum"
+    problem += lpSum([all_proteins[f] * food_equation[f] for f in all_food_names]
+                     ) <= macro_nutrients_ratio.get('proteins_upper'), "ProteinsMaximum"
+
+    # Fiber constraints
+    problem += lpSum([all_fibers[f] * food_equation[f]
+                     for f in all_food_names]) >= macro_nutrients_ratio.get('fiber'), "Fiber"
+
+    # Vitamin_A constraints
+    # problem += lpSum([all_vitamin_a[f] * food_equation[f] for f in all_food_names]) == macro_nutrients_ratio.get('vitamin_a'), "VitaminA"
+
+    # Vitamin_C constraints
+    problem += lpSum([all_vitamin_c[f] * food_equation[f]
+                     for f in all_food_names]) >= macro_nutrients_ratio.get('vitamin_c'), "VitaminC"
+
+    # Vitamin_D constraints
+    problem += lpSum([all_vitamin_d[f] * food_equation[f] for f in all_food_names]
+                     ) >= macro_nutrients_ratio.get('vitamin_c_lower'), "VitaminDMinimum"
+    problem += lpSum([all_vitamin_d[f] * food_equation[f] for f in all_food_names]
+                     ) <= macro_nutrients_ratio.get('vitamin_c_upper'), "VitaminDMaximum"
+
+    # Calcium constraints
+    problem += lpSum([all_calcium[f] * food_equation[f] for f in all_food_names]
+                     ) >= macro_nutrients_ratio.get('calcium_lower'), "CalciumMinimum"
+    problem += lpSum([all_calcium[f] * food_equation[f] for f in all_food_names]
+                     ) <= macro_nutrients_ratio.get('calcium_upper'), "CalciumMaximum"
+
+    # Folate constraints
+    # problem += lpSum([all_folate[f] * food_equation[f] for f in all_food_names]) >= macro_nutrients_ratio.get('folate'), "Folate"
+
+    LpSolverDefault.msg = 1
+    # Solve the equation
+    problem.solve()
+    print("Problem Status:", LpStatus[problem.status])
+
+    for v in problem.variables():
+        if v.varValue > 0:
+            print(v.name, "=", v.varValue)
 
 
-def get_food_recommendations(id):
-    ratings_df = pd.DataFrame(Rating.fetch_all_ratings())
+# This function returns the top 5 foods rated high by the user
+def get_food_recommendations(id, ratings):
+    ratings_df = pd.DataFrame(ratings)
 
     data_matrix = pd.pivot_table(
         ratings_df, index=['user_id'], columns='food_id', values="rating")

@@ -1,13 +1,14 @@
 from flask_restful import Resource
 from flask import request, jsonify, make_response
 from models.Model import Food, Rating, User
-from recommendation.RecommendFood import get_food_recommendations, daily_calorie_intake, extract_macro_nutrients
+from recommendation.RecommendFood import get_food_recommendations, daily_calorie_intake, extract_macro_nutrients, choose_foods
 
 
 class FoodRecommendationResource(Resource):
     def get(self, id):
         user = User.fetch_by_id(id=id)
         
+        # Calculate the calorie intake and macro nutrients split to consume per day - customized to each person
         calories = daily_calorie_intake(user)
         print("----------------> CALORIES")
         print(calories)
@@ -16,7 +17,13 @@ class FoodRecommendationResource(Resource):
         print("-------------")
         print(macro_nutrients_ratio)
 
-        similar_food_ids = get_food_recommendations(id)
+        # Pick out foods that fall under calculated calories and macro nutrients
+        foods = Food.fetch_all_foods()
+        choose_foods(calories, macro_nutrients_ratio, foods)
+
+        # Return food recommendations
+        ratings = Rating.fetch_all_ratings()
+        similar_food_ids = get_food_recommendations(id, ratings)
 
         food_response = []
 

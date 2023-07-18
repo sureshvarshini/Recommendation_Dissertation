@@ -57,9 +57,13 @@ class Food(db.Model):
 
     id = db.Column(db.Integer(), primary_key=True, autoincrement=True)
     name = db.Column(db.String(), nullable=False)
+    # servings = db.Column(db.String())
+    # ingredients = db.Column(db.String())
+    # directions = db.Column(db.String())
     calories = db.Column(db.Float())
     cholesterol = db.Column(db.Float())
     folic_acid = db.Column(db.Float())
+    # vitamin_a = db.Column(db.Float())
     vitamin_c = db.Column(db.Float())
     vitamin_d = db.Column(db.Float())
     calcium = db.Column(db.Float())
@@ -69,12 +73,18 @@ class Food(db.Model):
     fiber = db.Column(db.Float())
     sugars = db.Column(db.Float())
     fat = db.Column(db.Float())
+    # folate = db.Column(db.Float())
 
-    def __init__(self, name, calories, cholesterol, folic_acid, vitamin_c, vitamin_d, calcium, iron, protein, carbohydrate, fiber, sugars, fat):
+    def __init__(self, name, servings, ingredients, directions, food_type, calories, cholesterol, folic_acid, vitamin_a, vitamin_c, vitamin_d, calcium, iron, protein, carbohydrate, fiber, sugars, fat, folate):
         self.name = name
+        # self.servings = servings
+        # self.ingredients = ingredients
+        # self.directions = directions
+        # self.food_type = food_type
         self.calories = calories
         self.cholesterol = cholesterol
         self.folic_acid = folic_acid
+        # self.vitamin_a = vitamin_a
         self.vitamin_c = vitamin_c
         self.vitamin_d = vitamin_d
         self.calcium = calcium
@@ -84,14 +94,21 @@ class Food(db.Model):
         self.fiber = fiber
         self.sugars = sugars
         self.fat = fat
+        # self.folate = folate
 
     def __repr__(self):
         return f"Name of the food: {self.name}: Calories: {self.calories}"
 
+    def as_dictionary(self):
+        return {column.name: getattr(self, column.name) for column in self.__table__.columns}
+
     @classmethod
     def fetch_by_id(self, id):
         return Food.query.filter_by(id=id).first()
-    
+
+    def fetch_all_foods():
+        return [each_food.as_dictionary() for each_food in Food.query.all()]
+
 
 class Rating(db.Model):
     __tablename__ = 'rating'
@@ -108,16 +125,16 @@ class Rating(db.Model):
     @classmethod
     def fetch_by_user_id(self, id):
         return Rating.query.filter_by(user_id=id).all()
-    
+
     def fetch_all_ratings():
         return [each_rating.as_dictionary() for each_rating in Rating.query.all()]
-    
+
     def fetch_distinct_user():
         return db.session.query(Rating.user_id).distinct().all()
-    
+
     def fetch_distinct_food():
         return db.session.query(Rating.food_id).distinct().all()
-    
+
     def save(self):
         db.session.add(self)
         db.session.commit()
