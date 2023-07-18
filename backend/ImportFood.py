@@ -19,18 +19,21 @@ class Food(Base):
 
     id = Column(Integer(), primary_key=True, autoincrement=True)
     name = Column(String(), nullable=False)
+    servings = Column(String())
+    ingredients = Column(String())
+    directions = Column(String())
+    type = Column(String())
     calories = Column(Float())
-    cholesterol = Column(Float())
-    folic_acid = Column(Float())
+    vitamin_a = Column(Float())
     vitamin_c = Column(Float())
     vitamin_d = Column(Float())
     calcium = Column(Float())
-    iron = Column(Float())
     protein = Column(Float())
-    carbohydrate = Column(Float())
+    carbohydrates = Column(Float())
     fiber = Column(Float())
     sugars = Column(Float())
     fat = Column(Float())
+    folate = Column(Float())
 
 
 def food_object(row):

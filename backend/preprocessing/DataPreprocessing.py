@@ -15,49 +15,50 @@ def clean_food_csv():
     # Source Dataset location = D:\Varshini\CourseWork\Dissertation\Implementation\Recommendation_Dissertation\backend\preprocessing\datasets\Food_recommender\
 
     # Read the entire CSV
-    nutrition_data = pd.read_csv(dataset_location + 'nutrition.csv')
-
-    # Select columns: name, calories, cholesterol, folic_acid, vitamin_c, vitamin_d, calcium, iron, protein, carbohydrate, fiber, sugars, fat
-    subset_nutrition_data = nutrition_data[["name", "calories", "cholesterol", "folic_acid",
-                                            "vitamin_c", "vitamin_d", "calcium", "iron", "protein", "carbohydrate", "fiber", "sugars", "fat"]]
+    food_data = pd.read_csv(dataset_location + 'food_data.csv')
 
     print('\nChecking if there are any null or nan values in the selected columns:')
-    print(f"--------\nIs Null?\n--------\n",
-          subset_nutrition_data.isnull().sum())
-    print(f"--------\nIs NA?\n--------\n", subset_nutrition_data.isna().sum())
+    print(f"--------\nIs NA?\n--------\n", food_data.isna().sum())
     # No nan or null values
 
     # Replace strings in columns
-    subset_nutrition_data = subset_nutrition_data.replace(
-        'mcg', '', regex=True)
-    subset_nutrition_data = subset_nutrition_data.replace('mg', '', regex=True)
-    subset_nutrition_data = subset_nutrition_data.replace('g', '', regex=True)
-    subset_nutrition_data = subset_nutrition_data.replace('IU', '', regex=True)
+    food_data = food_data.replace('mcg RAE', '', regex=True)
+    food_data = food_data.replace('mcg DFE', '', regex=True)
+    food_data = food_data.replace('mg', '', regex=True)
+    food_data = food_data.replace('g', '', regex=True)
+    food_data = food_data.replace('\'', '', regex=True)
+    food_data = food_data.replace('\[', '', regex=True)
+    food_data = food_data.replace('\]', '', regex=True)
+    food_data = food_data.replace('mc', '', regex=True)
+    food_data = food_data.replace('milliliter', '', regex=True)
 
     # Covert columns to float dtype
-    subset_nutrition_data = subset_nutrition_data.astype({'cholesterol': 'float',
-                                                          'folic_acid': 'float',
-                                                          'vitamin_c': 'float',
-                                                          'vitamin_d': 'float',
-                                                          'calcium': 'float',
-                                                          'iron': 'float',
-                                                          'protein': 'float',
-                                                          'carbohydrate': 'float',
-                                                          'fiber': 'float',
-                                                          'sugars': 'float',
-                                                          'fat': 'float'})
+    food_data = food_data.astype({'cholesterol': 'float',
+                                  'calories': 'float',
+                                  'vitamin_a': 'float',
+                                  'vitamin_c': 'float',
+                                  'vitamin_d': 'float',
+                                  'calcium': 'float',
+                                  'iron': 'float',
+                                  'protein': 'float',
+                                  'carbohydrates': 'float',
+                                  'fiber': 'float',
+                                  'sugars': 'float',
+                                  'fat': 'float',
+                                  'folate': 'float'})
 
     # Check the types of the column are float
-    print(subset_nutrition_data.dtypes)
+    print(food_data.dtypes)
 
     print('Printing subset of cleaned data:\n')
-    print(subset_nutrition_data.head())
+    print(food_data.head())
 
     # Write the cleaned dataset to a new csv
     print('Writing cleaned data to a new csv:\n')
-    output_file_path = current_working_directory + '\\preprocessing\\cleanedDatasets\\'
-    subset_nutrition_data.to_csv(
-        output_file_path + 'nutrition_cleaned.csv', index=False)
+    output_file_path = current_working_directory + \
+        '\\preprocessing\\cleanedDatasets\\'
+    food_data.to_csv(
+        output_file_path + 'food_data_cleaned.csv', index=False)
 
 
 def clean_rating_csv():

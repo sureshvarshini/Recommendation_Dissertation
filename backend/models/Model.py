@@ -57,44 +57,39 @@ class Food(db.Model):
 
     id = db.Column(db.Integer(), primary_key=True, autoincrement=True)
     name = db.Column(db.String(), nullable=False)
-    # servings = db.Column(db.String())
-    # ingredients = db.Column(db.String())
-    # directions = db.Column(db.String())
+    servings = db.Column(db.String())
+    ingredients = db.Column(db.String())
+    directions = db.Column(db.String())
+    type = db.Column(db.String())
     calories = db.Column(db.Float())
-    cholesterol = db.Column(db.Float())
-    folic_acid = db.Column(db.Float())
-    # vitamin_a = db.Column(db.Float())
+    vitamin_a = db.Column(db.Float())
     vitamin_c = db.Column(db.Float())
     vitamin_d = db.Column(db.Float())
     calcium = db.Column(db.Float())
-    iron = db.Column(db.Float())
     protein = db.Column(db.Float())
-    carbohydrate = db.Column(db.Float())
+    carbohydrates = db.Column(db.Float())
     fiber = db.Column(db.Float())
     sugars = db.Column(db.Float())
     fat = db.Column(db.Float())
-    # folate = db.Column(db.Float())
+    folate = db.Column(db.Float())
 
-    def __init__(self, name, servings, ingredients, directions, food_type, calories, cholesterol, folic_acid, vitamin_a, vitamin_c, vitamin_d, calcium, iron, protein, carbohydrate, fiber, sugars, fat, folate):
+    def __init__(self, name, servings, ingredients, directions, type, calories, vitamin_a, vitamin_c, vitamin_d, calcium, protein, carbohydrates, fiber, sugars, fat, folate):
         self.name = name
-        # self.servings = servings
-        # self.ingredients = ingredients
-        # self.directions = directions
-        # self.food_type = food_type
+        self.servings = servings
+        self.ingredients = ingredients
+        self.directions = directions
+        self.type = type
         self.calories = calories
-        self.cholesterol = cholesterol
-        self.folic_acid = folic_acid
-        # self.vitamin_a = vitamin_a
+        self.vitamin_a = vitamin_a
         self.vitamin_c = vitamin_c
         self.vitamin_d = vitamin_d
         self.calcium = calcium
-        self.iron = iron
         self.protein = protein
-        self.carbohydrate = carbohydrate
+        self.carbohydrates = carbohydrates
         self.fiber = fiber
         self.sugars = sugars
         self.fat = fat
-        # self.folate = folate
+        self.folate = folate
 
     def __repr__(self):
         return f"Name of the food: {self.name}: Calories: {self.calories}"

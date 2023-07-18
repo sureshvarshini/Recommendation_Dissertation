@@ -107,7 +107,7 @@ def choose_foods(macro_nutrients_ratio, foods):
         # Creating list for all food items present in DB
         all_food_names = list(day_menu['name'])
         all_calories = dict(zip(all_food_names, day_menu['calories']))
-        all_carbohydrates = dict(zip(all_food_names, day_menu['carbohydrate']))
+        all_carbohydrates = dict(zip(all_food_names, day_menu['carbohydrates']))
         all_fats = dict(zip(all_food_names, day_menu['fat']))
         all_proteins = dict(zip(all_food_names, day_menu['protein']))
         all_fibers = dict(zip(all_food_names, day_menu['fiber']))

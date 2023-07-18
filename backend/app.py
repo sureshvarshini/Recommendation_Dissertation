@@ -19,19 +19,18 @@ api = Api(app)
 db.init_app(app)
 JWTManager(app)
 
-# Clean csv
-clean_food_csv()
-# Import food csv into database once - if not inserted
-print('Importing food csv to SQL database:\n')
-csv_file = 'D:\\Varshini\\CourseWork\\Dissertation\\Implementation\\Recommendation_Dissertation\\backend\\DataCleaning\\cleanedDatasets\\nutrition_cleaned.csv'
-import_food_csv_data(csv_file)
+# <----- Execute these lines for fresh app start ----->
+# clean_food_csv()
+# print('Importing food csv to SQL database:\n')
+# csv_file = 'D:\\Varshini\\CourseWork\\Dissertation\\Implementation\\Github\\Recommendation_Dissertation\\backend\\preprocessing\\cleanedDatasets\\food_data_cleaned.csv'
+# import_food_csv_data(csv_file)
 
-# Clean csv
 clean_rating_csv()
-# Import food csv into database once - if not inserted
 print('Importing rating csv to SQL database:\n')
-csv_file = 'D:\\Varshini\\CourseWork\\Dissertation\\Implementation\\Recommendation_Dissertation\\backend\\DataCleaning\\cleanedDatasets\\ratings_cleaned.csv'
+csv_file = 'D:\\Varshini\\CourseWork\\Dissertation\\Implementation\\Github\\Recommendation_Dissertation\\backend\\preprocessing\\cleanedDatasets\\ratings_cleaned.csv'
 import_rating_csv_data(csv_file)
+
+# <----- Till here ----->
 
 @app.route("/", defaults={'path':''})
 def serve(path):

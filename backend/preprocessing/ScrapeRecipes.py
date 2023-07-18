@@ -2,7 +2,6 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.service import Service
 from selenium.common.exceptions import NoSuchElementException
-from bs4 import BeautifulSoup
 import pandas as pd
 import os
 import time
@@ -15,18 +14,18 @@ def navigate():
     driver = webdriver.Chrome(service=service, options=options)
     temp_list = []
     course_types = {
-        # 'course-116': 'Appetizers',
-        # 'course-117': 'Beverages',
-        # 'course-118': 'Breads',
-        # 'course-119': 'Breakfast',
-        # 'course-120': 'Desserts',
-        # 'course-121': 'Main',
-        # 'course-122': 'Salads',
-        # 'course-126': 'Sandwiches',
-        # 'course-123': 'Dressings',
-        # 'course-124': 'Sides',
-        'course-125': 'Snacks'
-        # 'course-127': 'Soups'
+        'course-116': 'Appetizers',
+        'course-117': 'Beverages',
+        'course-118': 'Breads',
+        'course-119': 'Breakfast',
+        'course-120': 'Desserts',
+        'course-121': 'Main',
+        'course-122': 'Salads',
+        'course-126': 'Sandwiches',
+        'course-123': 'Dressings',
+        'course-124': 'Sides',
+        'course-125': 'Snacks',
+        'course-127': 'Soups'
     }
 
     for key in course_types:
