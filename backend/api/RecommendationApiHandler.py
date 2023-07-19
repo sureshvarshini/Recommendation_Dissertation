@@ -1,29 +1,54 @@
 from flask_restful import Resource
 from flask import request, jsonify, make_response
 from models.Model import Food, Rating, User
-from recommendation.RecommendFood import get_food_recommendations, daily_calorie_intake, extract_macro_nutrients, choose_foods
+from recommendation.RecommendFood import get_food_recommendations, daily_calorie_intake, extract_macro_nutrients, choose_foods, get_collaborative_recommendations
 
 
 class FoodRecommendationResource(Resource):
     def get(self, id):
         user = User.fetch_by_id(id=id)
+        food_response = []
 
         # Calculate the calorie intake and macro nutrients split to consume per day - customized to each person
         calories = daily_calorie_intake(user)
         macro_nutrients_ratio = extract_macro_nutrients(
             calories=calories, user=user)
+        
+        print("---------------------------")
+        print("MACRO NUTRIENTS RATIO")
+        print(macro_nutrients_ratio)
 
         # Pick out foods that fall under calculated calories and macro nutrients
         foods = Food.fetch_all_foods()
-        food_choices = choose_foods(macro_nutrients_ratio=macro_nutrients_ratio, foods=foods)
+        food_choices = choose_foods(
+            macro_nutrients_ratio=macro_nutrients_ratio, foods=foods)
 
-        print(food_choices)
+        recommended_meal_choices = {}
+        for meal_type, meal_options in food_choices.items():
+            response = []
+            for food_id in meal_options:
+                db_food = Food.fetch_by_id(id=food_id)
+                db_food_object = {
+                    "id": db_food.id,
+                    "Name": db_food.name,
+                    "Directions": db_food.directions,
+                    "Quantity": str(meal_options[food_id]) +'g',
+                    "Calories": db_food.calories,
+                    "Vitamin C": db_food.vitamin_c,
+                    "Vitamin D": db_food.vitamin_d,
+                    "Calcium": db_food.calcium,
+                    "Protein": db_food.protein,
+                    "Carbohydrate": db_food.carbohydrates,
+                    "Fiber": db_food.fiber,
+                    "Sugars": db_food.sugars,
+                    "Fat": db_food.fat
+                }
+                response.append(db_food_object)
+            recommended_meal_choices[meal_type] = response
 
-        # Return food recommendations
+        # Return food recommendations - hybrid recoommendation
         ratings = Rating.fetch_all_ratings()
         similar_food_ids = get_food_recommendations(id, ratings)
-
-        food_response = []
 
         for food_id in similar_food_ids:
             db_food = Food.fetch_by_id(id=food_id)
@@ -45,7 +70,7 @@ class FoodRecommendationResource(Resource):
             food_response.append(food_object)
 
         return make_response(jsonify({
-            "recommended_foods": food_response
+            "recommended_foods": recommended_meal_choices
         }), 200)
 
 

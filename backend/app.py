@@ -14,6 +14,7 @@ from ImportRatings import import_rating_csv_data
 app = Flask(__name__, static_url_path='', static_folder='frontend/build')
 CORS(app)
 app.config.from_object(Config)
+app.json.sort_keys = False
 api = Api(app)
 
 db.init_app(app)

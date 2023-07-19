@@ -11,6 +11,6 @@ class Config:
         'food': "sqlite:///" + os.path.join(BASE_DIRECTORY, 'food.db'),
         'rating': "sqlite:///" + os.path.join(BASE_DIRECTORY, 'rating.db')
     }
-    SQLALCHEMY_ECHO = True
+    SQLALCHEMY_ECHO = False
     DEBUG = True
     PROPAGATE_EXCEPTIONS= config('PROPAGATE_EXCEPTIONS', cast=bool) 

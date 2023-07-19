@@ -224,7 +224,7 @@ def get_food_recommendations(id, ratings):
     ratings_df = pd.DataFrame(ratings)
 
     data_matrix = pd.pivot_table(
-        ratings_df, index=['user_id'], columns='food_id', values="rating")
+        ratings_df, index=['user_id'], columns='food_id', values='rating')
     data_matrix.fillna(0, inplace=True)
     data_matrix['user_index'] = np.arange(0, data_matrix.shape[0], 1)
     data_matrix.set_index(['user_index'], inplace=True)
@@ -253,3 +253,30 @@ def get_food_recommendations(id, ratings):
     similar_food_ids = list(recommendations.index.values)
 
     return similar_food_ids
+
+def get_collaborative_recommendations(user_id, ratings):
+    # This function returns the top 5 foods based on collaborative filtering
+    ratings_df = pd.DataFrame(ratings)
+
+    data_matrix = pd.pivot_table(
+        ratings_df, index=['user_id'], columns='food_id', values='rating')
+    
+    user_ratings = data_matrix[user_id]
+    similar_users = data_matrix.corrwith(user_ratings).dropna()
+    similar_users = similar_users[similar_users > 0.3]
+    similar_users.sort_values(ascending=False, inplace=True)
+
+    # Get food items that similar users liked and the current user hasn't rated
+    recommendations = pd.Series()
+    for similar_user_id, similarity_score in similar_users.items():
+        similar_user_ratings = data_matrix[similar_user_id]
+        print("SIMILAR------------------->")
+        print(similar_user_ratings)
+        for food_id, rating in similar_user_ratings.items():
+            if pd.isnull(user_ratings[food_id]):
+                recommendations[food_id] = recommendations.get(food_id, 0) + rating * similarity_score
+
+    recommendations.sort_values(ascending=False, inplace=True)
+    print("---------------------")
+    print(recommendations)
+    return recommendations
