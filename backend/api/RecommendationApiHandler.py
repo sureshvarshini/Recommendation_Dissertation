@@ -15,10 +15,9 @@ class FoodRecommendationResource(Resource):
 
         # Pick out foods that fall under calculated calories and macro nutrients
         foods = Food.fetch_all_foods()
-        recommend_foods = choose_foods(macro_nutrients_ratio=macro_nutrients_ratio, foods=foods)
+        food_choices = choose_foods(macro_nutrients_ratio=macro_nutrients_ratio, foods=foods)
 
-        print("-----------")
-        print(recommend_foods)
+        print(food_choices)
 
         # Return food recommendations
         ratings = Rating.fetch_all_ratings()
