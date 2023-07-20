@@ -1,6 +1,6 @@
 from flask_restful import Resource
 from flask import request, jsonify, make_response
-from models.Model import Food, Rating, User
+from models.Model import Food, Rating, User, Water
 from recommendation.RecommendFood import daily_calorie_intake, extract_macro_nutrients, choose_foods, get_similar_foods_recommendation, get_similar_users_recommendations
 
 
@@ -112,3 +112,55 @@ class ViewRatingResource(Resource):
             "food_id": food_id,
             "rating": rating
         }), 200)
+
+
+class ActivityRecommendationResource(Resource):
+    def get(self, id):
+        return "Hello there!"
+
+
+class WaterRecommendationResource(Resource):
+    # Log water intake
+    def post(self, id):
+        data = request.get_json()
+        amount = data['amount']
+        water_quantity = Water.fetch_by_user_id(id=id)
+
+        if water_quantity is not None:
+            if amount:
+                water_quantity.amount = amount + water_quantity.amount
+        else:
+            water_quantity = Water(user_id=id, amount=data['amount'])
+        
+        water_quantity.save()
+
+        return make_response(jsonify({
+            "message": "Water intake updated successfuly.",
+            "status": 201
+        }), 201)
+
+    # Check water intake limit reached
+    def get(self, id):
+        water_quantity = Water.fetch_by_user_id(id=id)
+        print("WATER --------")
+        print(water_quantity)
+
+        if water_quantity is None:
+            return make_response(jsonify({
+                "water_status_code": -1,
+                "message": "You have not started logging your water intake.",
+                "status": 200
+            }), 200)
+
+        if water_quantity.amount >= 1500:  # ml
+            return make_response(jsonify({
+                "water_status_code": 1,
+                "message": "Goal achieved! You've had enough water for the day.",
+                "status": 200
+            }), 200)
+        else:
+            return make_response(jsonify({
+                "water_status_code": 0,
+                "message": f"Keep drinking! You still need {1500 - water_quantity.amount} liters.",
+                "status": 200
+            }), 200)

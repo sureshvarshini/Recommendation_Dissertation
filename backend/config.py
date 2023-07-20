@@ -9,7 +9,8 @@ class Config:
     SQLALCHEMY_DATABASE_URI = "sqlite:///" + os.path.join(BASE_DIRECTORY, 'profile.db')
     SQLALCHEMY_BINDS = {
         'food': "sqlite:///" + os.path.join(BASE_DIRECTORY, 'food.db'),
-        'rating': "sqlite:///" + os.path.join(BASE_DIRECTORY, 'rating.db')
+        'rating': "sqlite:///" + os.path.join(BASE_DIRECTORY, 'rating.db'),
+        'water': "sqlite:///" + os.path.join(BASE_DIRECTORY, 'water.db')
     }
     SQLALCHEMY_ECHO = False
     DEBUG = True

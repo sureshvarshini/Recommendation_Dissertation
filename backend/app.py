@@ -5,7 +5,7 @@ from flask_jwt_extended import JWTManager
 from models.Model import db
 from api.TestApiHandler import TestApiHandler
 from api.UserApiHandler import UserResource, SignupUserResource, LoginUserResource, RefreshResource
-from api.RecommendationApiHandler import FoodRecommendationResource, AddRatingResource, ViewRatingResource
+from api.RecommendationApiHandler import FoodRecommendationResource, AddRatingResource, ViewRatingResource, ActivityRecommendationResource, WaterRecommendationResource
 from config import Config
 from preprocessing.DataPreprocessing import clean_food_csv, clean_rating_csv
 from ImportFood import import_food_csv_data
@@ -44,3 +44,5 @@ api.add_resource(RefreshResource, '/user/token/refresh')
 api.add_resource(FoodRecommendationResource, '/recommend/<int:id>/foods')
 api.add_resource(AddRatingResource, '/ratings')
 api.add_resource(ViewRatingResource, '/ratings/<int:id>')
+api.add_resource(ActivityRecommendationResource, '/activity/<int:id>')
+api.add_resource(WaterRecommendationResource, '/water/<int:id>')

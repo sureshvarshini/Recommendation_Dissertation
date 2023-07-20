@@ -139,3 +139,26 @@ class Rating(db.Model):
     def save(self):
         db.session.add(self)
         db.session.commit()
+
+class Water(db.Model):
+    __tablename__ = 'water'
+    __bind_key__ = 'water'
+
+    id = db.Column(db.Integer(), primary_key=True, autoincrement=True)
+    user_id = db.Column(db.Integer(), nullable=False)
+    amount = db.Column(db.Float())
+
+    def __init__(self, user_id, amount):
+        self.user_id = user_id
+        self.amount = amount
+
+    def __repr__(self):
+        return f"User {self.user_id}: Water_level: {self.amount}"
+
+    @classmethod
+    def fetch_by_user_id(self, id):
+        return Water.query.filter_by(user_id=id).first()
+
+    def save(self):
+        db.session.add(self)
+        db.session.commit()
