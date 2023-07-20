@@ -2,6 +2,8 @@ import pandas as pd
 import numpy as np
 from pulp import LpVariable, LpProblem, LpMaximize, lpSum, LpStatus
 from scipy.sparse.linalg import svds
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import linear_kernel
 
 activity_levels = {
     'sedentary': 1.2,
@@ -176,11 +178,11 @@ def choose_foods(macro_nutrients_ratio, foods):
 
         # Vitamin_A constraints
         problem += lpSum([all_vitamin_a[f] * equation_variables[f]
-                        for f in all_food_ids]) <= macro_nutrients_ratio[meal]['vitamin_a'], "VitaminA"
+                          for f in all_food_ids]) <= macro_nutrients_ratio[meal]['vitamin_a'], "VitaminA"
 
         # Vitamin_C constraints
         problem += lpSum([all_vitamin_c[f] * equation_variables[f]
-                        for f in all_food_ids]) <= macro_nutrients_ratio[meal]['vitamin_c'], "VitaminC"
+                          for f in all_food_ids]) <= macro_nutrients_ratio[meal]['vitamin_c'], "VitaminC"
 
         # Vitamin_D constraints
         problem += lpSum([all_vitamin_d[f] * equation_variables[f] for f in all_food_ids]
@@ -196,7 +198,7 @@ def choose_foods(macro_nutrients_ratio, foods):
 
         # Folate constraints
         problem += lpSum([all_folate[f] * equation_variables[f]
-                        for f in all_food_ids]) <= macro_nutrients_ratio[meal]['folate'], "Folate"
+                          for f in all_food_ids]) <= macro_nutrients_ratio[meal]['folate'], "Folate"
 
         # Solve the equation
         status = problem.solve()
@@ -250,33 +252,24 @@ def get_food_recommendations(id, ratings):
     temp = temp.loc[temp.user_ratings == 0]
     temp = temp.sort_values('user_predictions', ascending=False)
     recommendations = temp.head(5)
-    similar_food_ids = list(recommendations.index.values)
+    rated_food_ids = list(recommendations.index.values)
 
-    return similar_food_ids
+    return rated_food_ids
 
-def get_collaborative_recommendations(user_id, ratings):
-    # This function returns the top 5 foods based on collaborative filtering
-    ratings_df = pd.DataFrame(ratings)
 
-    data_matrix = pd.pivot_table(
-        ratings_df, index=['user_id'], columns='food_id', values='rating')
-    
-    user_ratings = data_matrix[user_id]
-    similar_users = data_matrix.corrwith(user_ratings).dropna()
-    similar_users = similar_users[similar_users > 0.3]
-    similar_users.sort_values(ascending=False, inplace=True)
+def get_similar_foods(food_id, foods):
+    foods_df = pd.DataFrame(foods)
+    tfidf = TfidfVectorizer(stop_words='english')
+    tfidf_matrix = tfidf.fit_transform(foods_df['type'])
+    cosine_sim = linear_kernel(tfidf_matrix, tfidf_matrix)
+    food_index = pd.Series(
+        foods_df.index, index=foods_df['id']).drop_duplicates()[food_id]
 
-    # Get food items that similar users liked and the current user hasn't rated
-    recommendations = pd.Series()
-    for similar_user_id, similarity_score in similar_users.items():
-        similar_user_ratings = data_matrix[similar_user_id]
-        print("SIMILAR------------------->")
-        print(similar_user_ratings)
-        for food_id, rating in similar_user_ratings.items():
-            if pd.isnull(user_ratings[food_id]):
-                recommendations[food_id] = recommendations.get(food_id, 0) + rating * similarity_score
+    similarity_scores = list(enumerate(cosine_sim[food_index]))
+    similarity_scores = sorted(
+        similarity_scores, key=lambda x: x[1], reverse=True)
 
-    recommendations.sort_values(ascending=False, inplace=True)
-    print("---------------------")
-    print(recommendations)
-    return recommendations
+    # Get top 5 similar foods
+    similarity_scores = similarity_scores[1:6]
+    food_indices = [i[0] for i in similarity_scores]
+    return food_indices
