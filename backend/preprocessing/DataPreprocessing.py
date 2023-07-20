@@ -90,6 +90,9 @@ def clean_rating_csv():
     # Modify column names to include the unit
     subset_rating_data.rename(columns={'userId': 'user_id',
                                        'movieId': 'food_id'}, inplace=True)
+    
+    # Changing ratings to 1 that are 0
+    subset_rating_data.loc[subset_rating_data['rating'] == 0, 'rating'] = 1
 
     # Check the types of the column are float
     print(subset_rating_data.dtypes)

@@ -1,27 +1,30 @@
 import pandas as pd
 import numpy as np
+from sklearn.cluster import KMeans
+from sklearn.preprocessing import LabelEncoder, StandardScaler
 from pulp import LpVariable, LpProblem, LpMaximize, lpSum, LpStatus
-from scipy.sparse.linalg import svds
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import linear_kernel
 
-activity_levels = {
+ACTIVITY_LEVELS = {
     'sedentary': 1.2,
     'low_active': 1.4,
     'active': 1.6,
     'very_active': 1.9
 }
 
-meal_types = ['Breakfast', 'Morning Snack',
+MEAL_TYPES = ['Breakfast', 'Morning Snack',
               'Lunch', 'Afternoon Snack', 'Dinner']
 
-meal_percentages = {'Breakfast': 0.15, 'Morning Snack': 0.10,
+MEAL_PERCENTAGES = {'Breakfast': 0.15, 'Morning Snack': 0.10,
                     'Lunch': 0.35, 'Afternoon Snack': 0.10, 'Dinner': 0.30}
+
+N_CLUSTERS = 3
 
 
 def daily_calorie_intake(user):
     # TODO: change to get activity level from user object
-    activity_factor = activity_levels.get('sedentary')
+    activity_factor = ACTIVITY_LEVELS.get('sedentary')
     if (user.gender.lower() == "male"):
         calories_male = ((10 * user.weight) + (6.25 * user.height) -
                          (5 * user.age) + 5) * activity_factor
@@ -73,8 +76,8 @@ def extract_macro_nutrients(calories, user):
     proteins_upper = (1.5 * user.weight)
 
     macro_nutrients = {}
-    for meal in meal_types:
-        percentage = meal_percentages[meal]
+    for meal in MEAL_TYPES:
+        percentage = MEAL_PERCENTAGES[meal]
         nutrient_split = {
             'calories': round(calories * percentage),
             'carbohydrates_lower': round(carbohydrates_lower * percentage),
@@ -104,7 +107,7 @@ def choose_foods(macro_nutrients_ratio, foods):
     final_food_choices = []
     weekly_menu = prepare_weekly_menu(foods=foods_df)
 
-    for meal in meal_types:
+    for meal in MEAL_TYPES:
         print(f'Constructing food model for meal: {meal}')
         print("--------------------------------------------")
 
@@ -210,7 +213,7 @@ def choose_foods(macro_nutrients_ratio, foods):
                 food_id = int(str(v.name).replace('id_', ''))
                 recommended_foods[food_id] = v.varValue * 100
         final_food_choices.append(recommended_foods)
-    return dict(zip(meal_types, final_food_choices))
+    return dict(zip(MEAL_TYPES, final_food_choices))
 
 
 def prepare_weekly_menu(foods):
@@ -221,43 +224,40 @@ def prepare_weekly_menu(foods):
     return shuffled_food_data.sample(n=800)
 
 
-def get_food_recommendations(id, ratings):
-    # This function returns the top 5 foods rated high by the user
+def get_similar_users_recommendations(user_id, ratings, users):
+    # Get top 5 foods with highest rating from similar users
+    users_df = pd.DataFrame(users)
     ratings_df = pd.DataFrame(ratings)
 
-    data_matrix = pd.pivot_table(
-        ratings_df, index=['user_id'], columns='food_id', values='rating')
-    data_matrix.fillna(0, inplace=True)
-    data_matrix['user_index'] = np.arange(0, data_matrix.shape[0], 1)
-    data_matrix.set_index(['user_index'], inplace=True)
+    # Choosing similar users by features: age, weight, illness
+    users_df = users_df[['age', 'weight', 'illness']]
+    # Label encoding the features
+    encoder = LabelEncoder()
+    users_df['age'] = encoder.fit_transform(users_df['age'])
+    users_df['weight'] = encoder.fit_transform(users_df['weight'])
+    users_df['illness'] = encoder.fit_transform(users_df['illness'])
+    data_scalar = StandardScaler().fit_transform(users_df)
 
-    # Singular Value Decomposition
-    U, sigma, Vt = svds(data_matrix.to_numpy(), k=50)
-    sigma = np.diag(sigma)
-    all_user_predicted_ratings = np.dot(np.dot(U, sigma), Vt)
+    # KMeans clustering
+    kmeans = KMeans(n_clusters=N_CLUSTERS, random_state=24)
+    cluster_labels = kmeans.fit_predict(data_scalar)
+    users_df['cluster'] = cluster_labels
 
-    # Predicted ratings
-    preds_df = pd.DataFrame(all_user_predicted_ratings,
-                            columns=data_matrix.columns)
-    user_id_index = id - 1
+    user_cluster = users_df.loc[user_id, 'cluster']
+    similar_users = users_df[users_df['cluster'] == user_cluster]
+    similar_users = similar_users[similar_users.index != user_id]
 
-    sorted_user_ratings = data_matrix.iloc[user_id_index].sort_values(
-        ascending=False)
-    sorted_user_predictions = preds_df.iloc[user_id_index].sort_values(
-        ascending=False)
-
-    temp = pd.concat([sorted_user_ratings, sorted_user_predictions], axis=1)
-    temp.index.name = 'food_id'
-    temp.columns = ['user_ratings', 'user_predictions']
-    temp = temp.loc[temp.user_ratings == 0]
-    temp = temp.sort_values('user_predictions', ascending=False)
-    recommendations = temp.head(5)
-    rated_food_ids = list(recommendations.index.values)
-
+    rated_food_ids = []
+    for similar_user_id in similar_users.index:
+        user_ratings = ratings_df[ratings_df['user_id'] == similar_user_id]
+        top_rated_foods_df = user_ratings.nlargest(3, 'rating')
+        for each_id in top_rated_foods_df['food_id'].tolist():
+            if each_id not in rated_food_ids:
+                rated_food_ids.append(each_id)
     return rated_food_ids
 
 
-def get_similar_foods(food_id, foods):
+def get_similar_foods_recommendation(food_id, foods):
     foods_df = pd.DataFrame(foods)
     tfidf = TfidfVectorizer(stop_words='english')
     tfidf_matrix = tfidf.fit_transform(foods_df['type'])

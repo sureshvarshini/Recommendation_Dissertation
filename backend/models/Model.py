@@ -32,6 +32,9 @@ class User(db.Model):
 
     def __repr__(self):
         return f"User {self.username}: Age: {self.age}"
+    
+    def as_dictionary(self):
+        return {column.name: getattr(self, column.name) for column in self.__table__.columns}
 
     @classmethod
     def fetch_by_id(self, id):
@@ -40,6 +43,9 @@ class User(db.Model):
     @classmethod
     def fetch_by_username(self, username):
         return User.query.filter_by(username=username).first()
+    
+    def fetch_all_users():
+        return [each_user.as_dictionary() for each_user in User.query.all()]
 
     def save(self):
         db.session.add(self)

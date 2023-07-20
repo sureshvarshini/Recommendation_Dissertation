@@ -1,14 +1,13 @@
 from flask_restful import Resource
 from flask import request, jsonify, make_response
 from models.Model import Food, Rating, User
-from recommendation.RecommendFood import get_food_recommendations, daily_calorie_intake, extract_macro_nutrients, choose_foods, get_similar_foods
+from recommendation.RecommendFood import daily_calorie_intake, extract_macro_nutrients, choose_foods, get_similar_foods_recommendation, get_similar_users_recommendations
 
 
 class FoodRecommendationResource(Resource):
     def get(self, id):
         # id - user_id
         user = User.fetch_by_id(id=id)
-        food_response = []
 
         # Calculate the calorie intake and macro nutrients split to consume per day - customized to each person
         calories = daily_calorie_intake(user=user)
@@ -36,45 +35,30 @@ class FoodRecommendationResource(Resource):
                     "Name": db_food.name,
                     "Directions": db_food.directions,
                     "Quantity": str(meal_options[food_id]) + 'g',
-                    "Calories": db_food.calories,
-                    "Vitamin C": db_food.vitamin_c,
-                    "Vitamin D": db_food.vitamin_d,
-                    "Calcium": db_food.calcium,
-                    "Protein": db_food.protein,
-                    "Carbohydrate": db_food.carbohydrates,
-                    "Fiber": db_food.fiber,
-                    "Sugars": db_food.sugars,
-                    "Fat": db_food.fat
+                    "Calories": db_food.calories
                 }
                 recommended_response.append(db_food_object)
 
             # Fetch foods similar to 'food_id'
-            similar_food_ids = get_similar_foods(
+            similar_food_ids = get_similar_foods_recommendation(
                 food_id=food_id, foods=all_foods)
-            for id in similar_food_ids:
-                similar_food = Food.fetch_by_id(id=id)
+            for food_id in similar_food_ids:
+                similar_food = Food.fetch_by_id(id=food_id)
                 similar_food_object = {
                     "id": similar_food.id,
                     "Name": similar_food.name,
                     "Directions": similar_food.directions,
-                    "Calories": similar_food.calories,
-                    "Vitamin C": similar_food.vitamin_c,
-                    "Vitamin D": similar_food.vitamin_d,
-                    "Calcium": similar_food.calcium,
-                    "Protein": similar_food.protein,
-                    "Carbohydrate": similar_food.carbohydrates,
-                    "Fiber": similar_food.fiber,
-                    "Sugars": similar_food.sugars,
-                    "Fat": similar_food.fat
+                    "Calories": similar_food.calories
                 }
                 similar_food_response.append(similar_food_object)
 
             recommended_meal_choices[meal_type] = recommended_response
             similar_meal_choices[meal_type] = similar_food_response
 
-        # Fetch foods - highest rating by user
+        # Fetch foods - highest rating by similar users
         ratings = Rating.fetch_all_ratings()
-        rated_food_ids = get_food_recommendations(id, ratings)
+        users = User.fetch_all_users()
+        rated_food_ids = get_similar_users_recommendations(id, ratings, users)
 
         rated_food_choices = []
         for id in rated_food_ids:
@@ -83,22 +67,14 @@ class FoodRecommendationResource(Resource):
                 "id": rated_food.id,
                 "Name": rated_food.name,
                 "Directions": rated_food.directions,
-                "Calories": rated_food.calories,
-                "Vitamin C": rated_food.vitamin_c,
-                "Vitamin D": rated_food.vitamin_d,
-                "Calcium": rated_food.calcium,
-                "Protein": rated_food.protein,
-                "Carbohydrate": rated_food.carbohydrates,
-                "Fiber": rated_food.fiber,
-                "Sugars": rated_food.sugars,
-                "Fat": rated_food.fat
+                "Calories": rated_food.calories
             }
             rated_food_choices.append(rated_food_object)
 
         return make_response(jsonify({
             "recommended_foods": recommended_meal_choices,
             "similar_food_choices": similar_meal_choices,
-            "rated_food_choices": rated_food_choices
+            "similar_user_food_choices": rated_food_choices
         }), 200)
 
 
