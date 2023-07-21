@@ -1,12 +1,13 @@
-.container {
-    margin-top: 25px;
+.container{
+    margin-top: 50px;
 }
-
-.form {
-    margin: auto;
+.heading{
+    font-size: 3em;
+}
+.form{
+    margin:auto;
     width: 80%;
 }
-
-.profile {
-    margin: 20px;
+.recipe{
+    margin-top:20px;
 }
