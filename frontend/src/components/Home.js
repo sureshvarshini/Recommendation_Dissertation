@@ -8,7 +8,9 @@ const LoggedInHomePage = () => {
     return (
         <div className="Recommendation container">
             <h1>Welcome back to AssistWise</h1>
-            <h4>View your recommendations here</h4>
+            <h4>View your food recommendations <Link to='/recommendations/food'>here</Link> </h4>
+            <br></br>
+            <h4>View your water tracker <Link to='/recommendations/water'>here</Link></h4>
         </div>
     )
 }

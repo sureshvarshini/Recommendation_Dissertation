@@ -12,6 +12,8 @@ import SignupPage from './components/SignUp'
 import LoginPage from './components/Login'
 import MyAccountPage from './components/MyAccount'
 import GoodbyePage from './components/Goodbye'
+import RecipeRecommendationPage from './components/RecipeRecommendation'
+import WaterTrackerPage from './components/WaterTracker';
 
 function App() {
 
@@ -21,6 +23,8 @@ function App() {
         <div className=''>
           <Navbar />
           <Routes>
+            <Route path='/recommendations/food' element={<RecipeRecommendationPage />} />
+            <Route path='/recommendations/water' element={<WaterTrackerPage />} />
             <Route path='/enduser' element={<GoodbyePage />} />
             <Route path='/myaccount' element={<MyAccountPage />} />
             <Route path='/login' element={<LoginPage />} />
