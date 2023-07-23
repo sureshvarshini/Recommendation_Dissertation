@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import axios from 'axios'
 import { login } from '../Auth'
+import loginImage from "../assets/login.jpg"
 
 const LoginPage = () => {
     const [responseData, setResponseData] = useState('')
@@ -51,46 +52,56 @@ const LoginPage = () => {
     }
 
     return (
-        <div className="container">
-            <div className="form">
-                <h1>Get your tailored recommended content by logging in here.</h1>
-                <form>
-                    <Form.Group>
-                        <Form.Label>Username</Form.Label>
-                        <Form.Control type="text"
-                            {...register("username", { required: true })}
-                        />
-                        {errors.username?.type === "required" && <span style={{ color: "red", fontSize: 14 }}>username is required</span>}
-                    </Form.Group>
-                    <br></br>
-                    <Form.Group>
-                        <Form.Label>Password</Form.Label>
-                        <Form.Control type="password"
-                            {...register("password", { required: true })}
-                        />
-                        {errors.password?.type === "required" && <span style={{ color: "red", fontSize: 14 }}>password is required</span>}
-                    </Form.Group>
-                    <br></br>
-                    {show ?
-                        <>
-                            <Alert key={variant} variant={variant} onClose={() => { setShow(false) }} dismissible>
-                                <p>{responseData.message}</p>
-                            </Alert>
-                        </>
-                        : <br></br>
-                    }
-                    <Form.Group>
-                        <Button as="sub" variant="primary" onClick={handleSubmit(loginSubmitForm)}>Login</Button>
-                    </Form.Group>
-                    <br></br>
-                    <Form.Group>
-                        <small>
-                            New user? Signup <Link to='/signup'>here</Link> to unlock your tailored recommendations and begin your journey.
-                        </small>
-                    </Form.Group>
-                </form>
+        <section class="vh-100">
+            <div className="container py-5 h-100">
+                <div class="row d-flex align-items-center justify-content-center h-100">
+                    <div class="col-md-8 col-lg-7 col-xl-6">
+                        <img src={loginImage} class="img-fluid" />
+                    </div>
+                    <div className="col-md-7 col-lg-5 col-xl-5 offset-xl-1">
+                        <h2 style={{fontWeight: 'bold'}}>Get your tailored recommended content by logging in here.</h2>
+                        <br></br>
+                        <form>
+                            <Form.Group>
+                                <Form.Label>Username</Form.Label>
+                                <Form.Control type="text"
+                                    {...register("username", { required: true })}
+                                />
+                                {errors.username?.type === "required" && <span style={{ color: "red", fontSize: 14 }}>username is required</span>}
+                            </Form.Group>
+                            <br></br>
+                            <Form.Group>
+                                <Form.Label>Password</Form.Label>
+                                <Form.Control type="password"
+                                    {...register("password", { required: true })}
+                                />
+                                {errors.password?.type === "required" && <span style={{ color: "red", fontSize: 14 }}>password is required</span>}
+                            </Form.Group>
+                            <br></br>
+                            {show ?
+                                <>
+                                    <Alert key={variant} variant={variant} onClose={() => { setShow(false) }} dismissible>
+                                        <p>{responseData.message}</p>
+                                    </Alert>
+                                </>
+                                : <br></br>
+                            }
+                            <Form.Group>
+                                <div className="d-grid gap-2">
+                                    <Button variant="primary" size="lg" onClick={handleSubmit(loginSubmitForm)}>Login</Button>
+                                </div>
+                            </Form.Group>
+                            <br></br>
+                            <Form.Group>
+                                <small>
+                                    New user? Signup <Link to='/signup'>here</Link> to unlock your tailored recommendations and begin your journey.
+                                </small>
+                            </Form.Group>
+                        </form>
+                    </div>
+                </div>
             </div>
-        </div>
+        </section>
     )
 }
 

@@ -11,3 +11,7 @@
 .recipe{
     margin-top:20px;
 }
+
+html * {
+    font-family: sans-serif;
+}

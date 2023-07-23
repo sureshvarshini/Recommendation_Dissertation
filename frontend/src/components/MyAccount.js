@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form'
 import axios from 'axios'
 import { logout } from '../Auth'
 import UserProfile from './UserProfile'
+import '../css/MyAccount.css'
 
 const MyAccountPage = () => {
     const [gender, setGender] = useState('')
@@ -99,29 +100,28 @@ const MyAccountPage = () => {
 
     return (
         <>
-            <h1>My Account</h1>
             <Modal show={show} size="lg" onHide={closeModal}>
                 <Modal.Header closeButton>
                     <Modal.Title>
-                        Update user details.
+                        UPDATE YOUR DETAILS HERE
                     </Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
                     <form>
                         <Form.Group>
-                            <Form.Label>Username</Form.Label>
+                            <Form.Label style={{ fontSize: "20px" }}>Username</Form.Label>
                             <Form.Control type="text" placeholder={userProfile.Username} disabled readOnly />
                             <span style={{ color: "green", fontSize: 14 }}>username cannot be modified</span>
                         </Form.Group>
                         <br></br>
                         <Form.Group>
-                            <Form.Label>Email</Form.Label>
+                            <Form.Label style={{ fontSize: "20px" }}>Email</Form.Label>
                             <Form.Control type="email" placeholder={userProfile.Email} disabled readOnly />
                             <span style={{ color: "green", fontSize: 14 }}>email address cannot be modified</span>
                         </Form.Group>
                         <br></br>
                         <Form.Group>
-                            <Form.Label>First Name</Form.Label>
+                            <Form.Label style={{ fontSize: "20px" }}>First Name</Form.Label>
                             <Form.Control type="text"
                                 {...register("firstname", { minLength: 3, maxLength: 50 })}
                             />
@@ -130,7 +130,7 @@ const MyAccountPage = () => {
                         </Form.Group>
                         <br></br>
                         <Form.Group>
-                            <Form.Label>Last Name</Form.Label>
+                            <Form.Label style={{ fontSize: "20px" }}>Last Name</Form.Label>
                             <Form.Control type="text"
                                 {...register("lastname", { minLength: 3, maxLength: 50 })}
                             />
@@ -139,26 +139,14 @@ const MyAccountPage = () => {
                         </Form.Group>
                         <br></br>
                         <Form.Group>
-                            <Form.Label>Age</Form.Label>
+                            <Form.Label style={{ fontSize: "20px" }}>Age (years)</Form.Label>
                             <Form.Control type="number" min='1' max='150'
                                 {...register("age", { valueAsNumber: true })}
                             />
                         </Form.Group>
                         <br></br>
-                        <Form.Group controlId="formBasicSelect1">
-                            <Form.Label>Gender</Form.Label>
-                            <Form.Control as="select"
-                                value={gender}
-                                name="gender"
-                                onChange={(event) => { setGender(event.target.value) }}>
-                                <option>Select which suits you.</option>
-                                <option value={"Male"}>Male</option>
-                                <option value={"Female"}>Female</option>
-                            </Form.Control>
-                        </Form.Group>
-                        <br></br>
                         <Form.Group>
-                            <Form.Label>Height</Form.Label>
+                            <Form.Label style={{ fontSize: "20px" }}>Height (cm)</Form.Label>
                             <Form.Control type="number"
                                 min='1'
                                 {...register("height", { valueAsNumber: true })}
@@ -166,7 +154,7 @@ const MyAccountPage = () => {
                         </Form.Group>
                         <br></br>
                         <Form.Group>
-                            <Form.Label>Weight</Form.Label>
+                            <Form.Label style={{ fontSize: "20px" }}>Weight (kg)</Form.Label>
                             <Form.Control type="number"
                                 min='1'
                                 {...register("weight", { valueAsNumber: true })}
@@ -174,24 +162,28 @@ const MyAccountPage = () => {
                         </Form.Group>
                         <br></br>
                         <Form.Group controlId="formBasicSelect2">
-                            <Form.Label>Illness</Form.Label>
+                            <Form.Label style={{ fontSize: "20px" }}>Medical background</Form.Label>
                             <Form.Control as="select"
                                 value={illness}
                                 name="illness"
                                 onChange={(event) => { setIllness(event.target.value) }}>
-                                <option>Select illness (if any, else select 'No').</option>
-                                <option value={"Illness 1"}>Illness 1</option>
+                                <option value={"Hypertension"}>Hypertension</option>
+                                <option value={"Cholesterol"}>Cholesterol</option>
+                                <option value={"Diabetes"}>Diabetes</option>
+                                <option value={"Coronary Heart Disease"}>Coronary Heart Disease</option>
+                                <option value={"Arthritis"}>Arthritis</option>
                                 <option value={"No"}>No</option>
                             </Form.Control>
                         </Form.Group>
                         <Form.Group>
-                            <Button as="sub" variant="primary" onClick={handleSubmit(updateUser)}>Save</Button>
+                            <div className="d-flex justify-content-center">
+                                <Button as="sub" variant="primary" class="btn btn-primary btn-block btn-lg" onClick={handleSubmit(updateUser)}>Save</Button>
+                            </div>
                         </Form.Group>
                         <br></br>
                     </form>
                 </Modal.Body>
             </Modal>
-
             <UserProfile
                 Username={userProfile.Username}
                 Firstname={userProfile.Firstname}
@@ -205,6 +197,7 @@ const MyAccountPage = () => {
                 onClick={() => { showModal(userProfile.id) }}
                 onDelete={() => { deleteUser(userProfile.id) }}
             />
+
         </>
     )
 }
