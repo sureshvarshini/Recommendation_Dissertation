@@ -1,7 +1,7 @@
 .card {
     background-color: lightgoldenrodyellow;
     color: #05052D;
-    padding: 15px;
+    padding: 20px;
     border-radius: 20px;
     border: 0px;
     border-color: rgb(255, 71, 71);
@@ -13,7 +13,7 @@
 
 .card:hover {
     transition: 200ms;
-    border: 3px;
+    border: 4px;
     border-color: tomato;
     border-style: solid;
 }
@@ -31,7 +31,7 @@
 
 .card-title {
     flex: 0.5;
-    font-size: xxx-large;
+    font-size: 30px;
     margin-bottom: 0;
     margin-top: 0;
     font-weight: bold;
@@ -54,4 +54,19 @@
     align-items: center;
     margin-top: 20px;
     justify-content: space-between;
+}
+
+.slick-prev {
+    left: -52px !important;
+}
+
+.slick-next:before,
+.slick-prev:before {
+    content: "" !important;
+}
+
+.next-slick-arrow,
+.prev-slick-arrow {
+    color: #000000;
+    font-size: 45px;
 }
