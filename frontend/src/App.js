@@ -20,7 +20,7 @@ function App() {
   return (
     <>
       <Router>
-        <div className=''>
+        <div className='app'>
           <Navbar />
           <Routes>
             <Route path='/recommendations/food' element={<RecipeRecommendationPage />} />

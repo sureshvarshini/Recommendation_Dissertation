@@ -2,6 +2,8 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth, logout } from '../Auth'
+import logo from "../assets/Assist_wise_logo.png"
+import avatar from "../assets/avatar.jpg"
 
 // The links/buttons that are available to a logged in user.
 const LoggedInLinks = () => {
@@ -28,9 +30,6 @@ const LoggedOutLinks = () => {
         <Link className="nav-link active" to="/">Home</Link>
       </li>
       <li className="nav-item">
-        <Link className="nav-link active" to="/signup">Sign-Up</Link>
-      </li>
-      <li className="nav-item">
         <Link className="nav-link active" to="/login">Login</Link>
       </li>
     </>
@@ -42,12 +41,12 @@ const Navbar = () => {
   const [isUserLoggedIn] = useAuth()
 
   return (
-    <nav className="navbar navbar-expand-lg navbar-dark bg-dark">
+    <nav className="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
       <div className="container-fluid">
-        <Link className="navbar-brand" to="/">AssistWise</Link>
-        <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-          <span className="navbar-toggler-icon"></span>
-        </button>
+        <a style={{ fontSize: '20px' }} className="navbar-brand" href="/">
+          <img src={logo} class="me-2" height="40" loading="lazy" />
+          AssistWise
+        </a>
         <div className="rightside" id="navbarNav">
           <ul className="navbar-nav">{isUserLoggedIn ? <LoggedInLinks /> : <LoggedOutLinks />}</ul>
         </div>
