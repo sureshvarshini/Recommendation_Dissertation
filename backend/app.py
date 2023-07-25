@@ -25,8 +25,8 @@ JWTManager(app)
 # <----- Execute these lines for fresh app start ----->
 # clean_food_csv()
 # print('Importing food csv to SQL database:\n')
-# csv_file = 'D:\\Varshini\\CourseWork\\Dissertation\\Implementation\\Github\\Recommendation_Dissertation\\backend\\preprocessing\\cleanedDatasets\\food_data_cleaned.csv'
-# import_food_csv_data(csv_file)
+csv_file = 'D:\\Varshini\\CourseWork\\Dissertation\\Implementation\\Github\\Recommendation_Dissertation\\backend\\preprocessing\\cleanedDatasets\\food_data_cleaned.csv'
+import_food_csv_data(csv_file)
 
 # clean_rating_csv()
 # print('Importing rating csv to SQL database:\n')

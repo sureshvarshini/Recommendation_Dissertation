@@ -33,6 +33,8 @@ class FoodRecommendationResource(Resource):
                 db_food_object = {
                     "id": db_food.id,
                     "Name": db_food.name,
+                    "Servings": db_food.servings,
+                    "Ingredients": db_food.ingredients,
                     "Directions": db_food.directions,
                     "Quantity": str(meal_options[food_id]) + 'g',
                     "Calories": db_food.calories
@@ -47,6 +49,8 @@ class FoodRecommendationResource(Resource):
                 similar_food_object = {
                     "id": similar_food.id,
                     "Name": similar_food.name,
+                    "Servings": db_food.servings,
+                    "Ingredients": db_food.ingredients,
                     "Directions": similar_food.directions,
                     "Calories": similar_food.calories
                 }
@@ -66,7 +70,9 @@ class FoodRecommendationResource(Resource):
             rated_food_object = {
                 "id": rated_food.id,
                 "Name": rated_food.name,
-                "Directions": rated_food.directions,
+                "Servings": db_food.servings,
+                "Ingredients": db_food.ingredients,
+                "Directions": similar_food.directions,
                 "Calories": rated_food.calories
             }
             rated_food_choices.append(rated_food_object)
