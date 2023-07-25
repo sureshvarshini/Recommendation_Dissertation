@@ -6,6 +6,43 @@ import pandas as pd
 import os
 import time
 
+def recipe_images():
+    # Function to scrape image url of the recipes.
+    service = Service(
+        executable_path='C:/Users/sureshv/Downloads/chromedriver_win32')
+    options = webdriver.ChromeOptions()
+    driver = webdriver.Chrome(service=service, options=options)
+    driver.get(
+            'https://www.myplate.gov/myplate-kitchen/recipes?items_per_page=100&sort_bef_combine=title_ASC')
+    time.sleep(3)
+
+    image_results = driver.find_elements(By.XPATH, "//img[contains(@class,'image-style-medium')]")
+    food_results = driver.find_elements(By.XPATH, ".//span[@class = 'field field--name-title field--type-string field--label-hidden']")
+
+    image_source = []
+    food_titles = []
+
+    for image in image_results:
+        image_source.append(image.get_attribute('src'))
+    for name in food_results:
+        food_titles.append(name.text)   
+
+    try:
+        pages = driver.find_element(
+            By.CLASS_NAME, 'pager').find_elements(By.TAG_NAME, 'li')
+        for page in range(1, len(pages)+1):
+            print(f'In page: {page}')
+            try:
+                driver.find_element(
+                    By.XPATH, '//*[@id="block-myplate-content"]/div/div/nav/ul/li[' + str(page) + ']/a').click()
+                time.sleep(5)
+            except NoSuchElementException:
+                print('No more pages to load!')
+                continue
+
+    except NoSuchElementException:
+            print('No next page exists.')
+
 
 def navigate():
     service = Service(
@@ -171,4 +208,5 @@ def navigate():
 
 
 if __name__ == "__main__":
-    navigate()
+    # navigate()
+    recipe_images()

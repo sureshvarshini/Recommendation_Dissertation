@@ -17,8 +17,9 @@ class User(db.Model):
     height = db.Column(db.Integer())
     weight = db.Column(db.Integer())
     illness = db.Column(db.String())
+    activity_level = db.Column(db.String())
 
-    def __init__(self, username, email, password, firstname, lastname, age, gender, height, weight, illness):
+    def __init__(self, username, email, password, firstname, lastname, age, gender, height, weight, illness, activity_level):
         self.username = username
         self.email = email
         self.password = password
@@ -29,6 +30,7 @@ class User(db.Model):
         self.height = height
         self.weight = weight
         self.illness = illness
+        self.activity_level = activity_level
 
     def __repr__(self):
         return f"User {self.username}: Age: {self.age}"
@@ -46,6 +48,11 @@ class User(db.Model):
     
     def fetch_all_users():
         return [each_user.as_dictionary() for each_user in User.query.all()]
+    
+    def update_activity(id, activity_level):
+        db_user = User.query.filter_by(id=id).first()
+        db_user.activity_level = activity_level
+        db.session.commit()
 
     def save(self):
         db.session.add(self)

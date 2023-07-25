@@ -131,7 +131,7 @@ class WaterRecommendationResource(Resource):
                 water_quantity.amount = amount + water_quantity.amount
         else:
             water_quantity = Water(user_id=id, amount=data['amount'])
-        
+
         water_quantity.save()
 
         return make_response(jsonify({
@@ -142,8 +142,6 @@ class WaterRecommendationResource(Resource):
     # Check water intake limit reached
     def get(self, id):
         water_quantity = Water.fetch_by_user_id(id=id)
-        print("WATER --------")
-        print(water_quantity)
 
         if water_quantity is None:
             return make_response(jsonify({
@@ -152,15 +150,22 @@ class WaterRecommendationResource(Resource):
                 "status": 200
             }), 200)
 
-        if water_quantity.amount >= 1500:  # ml
+        # 1 cup ~ 250ml
+        # 7 cups = 1700ml
+
+        if water_quantity.amount >= 1700:  # ml
             return make_response(jsonify({
                 "water_status_code": 1,
                 "message": "Goal achieved! You've had enough water for the day.",
                 "status": 200
             }), 200)
         else:
+            cups = round((1700 - water_quantity.amount)/250)
+            remaining_water = 1700 - water_quantity.amount
             return make_response(jsonify({
                 "water_status_code": 0,
-                "message": f"Keep drinking! You still need {1500 - water_quantity.amount} liters.",
+                "remaining_ml": remaining_water,
+                "remaining_cups": cups,
+                "message": f"Keep drinking! You still need {1700 - water_quantity.amount} liters.",
                 "status": 200
             }), 200)

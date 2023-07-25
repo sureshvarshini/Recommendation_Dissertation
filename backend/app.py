@@ -6,10 +6,12 @@ from models.Model import db
 from api.TestApiHandler import TestApiHandler
 from api.UserApiHandler import UserResource, SignupUserResource, LoginUserResource, RefreshResource
 from api.RecommendationApiHandler import FoodRecommendationResource, AddRatingResource, ViewRatingResource, ActivityRecommendationResource, WaterRecommendationResource
+from api.ModelApiHandler import ModelTrainingResource
 from config import Config
 from preprocessing.DataPreprocessing import clean_food_csv, clean_rating_csv
 from ImportFood import import_food_csv_data
 from ImportRatings import import_rating_csv_data
+from ImportActivity import load_history_adl_data
 
 app = Flask(__name__, static_url_path='', static_folder='frontend/build')
 CORS(app)
@@ -32,6 +34,9 @@ JWTManager(app)
 # import_rating_csv_data(csv_file)
 # <----- Till here ----->
 
+# Train model from history data - at the beginning of the application
+# load_history_adl_data()
+
 @app.route("/", defaults={'path':''})
 def serve(path):
     return send_from_directory(app.static_folder,'index.html')
@@ -46,3 +51,4 @@ api.add_resource(AddRatingResource, '/ratings')
 api.add_resource(ViewRatingResource, '/ratings/<int:id>')
 api.add_resource(ActivityRecommendationResource, '/activity/<int:id>')
 api.add_resource(WaterRecommendationResource, '/water/<int:id>')
+api.add_resource(ModelTrainingResource, '/model')

@@ -19,12 +19,14 @@ MEAL_TYPES = ['Breakfast', 'Morning Snack',
 MEAL_PERCENTAGES = {'Breakfast': 0.15, 'Morning Snack': 0.10,
                     'Lunch': 0.35, 'Afternoon Snack': 0.10, 'Dinner': 0.30}
 
-N_CLUSTERS = 3
+N_CLUSTERS = 10
 
 
 def daily_calorie_intake(user):
-    # TODO: change to get activity level from user object
-    activity_factor = ACTIVITY_LEVELS.get('sedentary')
+    if user.activity_level is not None:
+        activity_factor = ACTIVITY_LEVELS.get(user.activity_level)
+    else:
+        activity_factor = ACTIVITY_LEVELS.get('low_active')
     if (user.gender.lower() == "male"):
         calories_male = ((10 * user.weight) + (6.25 * user.height) -
                          (5 * user.age) + 5) * activity_factor
@@ -225,7 +227,7 @@ def prepare_weekly_menu(foods):
 
 
 def get_similar_users_recommendations(user_id, ratings, users):
-    # Get top 5 foods with highest rating from similar users
+    # Get top 3 foods with highest rating from top 3 similar users
     users_df = pd.DataFrame(users)
     ratings_df = pd.DataFrame(ratings)
 
@@ -244,7 +246,8 @@ def get_similar_users_recommendations(user_id, ratings, users):
     users_df['cluster'] = cluster_labels
 
     user_cluster = users_df.loc[user_id, 'cluster']
-    similar_users = users_df[users_df['cluster'] == user_cluster]
+    similar_users = (users_df[users_df['cluster'] ==
+                     user_cluster]).nlargest(3, 'age')
     similar_users = similar_users[similar_users.index != user_id]
 
     rated_food_ids = []
