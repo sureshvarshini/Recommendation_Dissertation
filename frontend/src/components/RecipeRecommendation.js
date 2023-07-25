@@ -12,8 +12,21 @@ const RecipeRecommendationPage = () => {
     const [recommendedFoodProfiles, setRecommendedFoodProfiles] = useState('')
     const [similarFoodProfiles, setSimilarFoodProfiles] = useState('')
     const [similarUserFoodProfiles, setSimilarUserFoodProfiles] = useState([])
+    const [selectedFoodProfile, setSelectedFoodProfile] = useState([])
+    const [show, setShow] = useState('')
 
     let userId = localStorage.getItem('id')
+
+    const closeModal = () => {
+        setShow(false)
+    }
+
+    const showModal = (recipe) => {
+        console.log('Recipe card clicked.')
+        console.log(recipe)
+        setSelectedFoodProfile(recipe)
+        setShow(true)
+    }
 
     // Get recipe from flask endpoint
     useEffect(() => {
@@ -50,6 +63,17 @@ const RecipeRecommendationPage = () => {
 
     return (
         <div className='container'>
+            <Modal show={show} size="lg" onHide={closeModal} style={{ padding: 150 }}>
+                <Modal.Header closeButton>
+                    <Modal.Title>
+                        {selectedFoodProfile.Name}
+                    </Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    <p>Quantity: {selectedFoodProfile?.Quantity}</p>
+                    <p>Calories: {selectedFoodProfile?.Calories}</p>
+                </Modal.Body>
+            </Modal>
             <div class="d-flex justify-content-center">
                 <h3 style={{ fontWeight: 'bold', marginTop: '20px', textAlign: "center" }}>Greetings!! Your list of recommended recipes awaits you on this page.</h3>
             </div>
@@ -61,12 +85,13 @@ const RecipeRecommendationPage = () => {
                     <div key={mealType}>
                         <h2 style={{ display: 'flex', justifyContent: 'center', color: 'white', marginTop: '30px', backgroundColor: '#FF0078', borderRadius: '10px', padding: 10 }}>{mealType}</h2>
                         <Slider {...settings}>
-                            {recommendedFoodProfiles[mealType].map((recipes) => (
-                                <div key={recipes.id}>
+                            {recommendedFoodProfiles[mealType].map((recipe) => (
+                                <div key={recipe.id}>
                                     <FoodCard
-                                        Name={recipes.Name}
-                                        Quantity={recipes.Quantity}
-                                        Calories={recipes.Calories}
+                                        Name={recipe.Name}
+                                        Quantity={recipe.Quantity}
+                                        Calories={recipe.Calories}
+                                        onClick={() => { showModal(recipe) }}
                                     />
                                 </div>
                             ))}
@@ -74,8 +99,7 @@ const RecipeRecommendationPage = () => {
                     </div>
                 ))}
             </div>
-
-            <div className='similar food recipes '>
+            {/* <div className='similar food recipes '>
                 <h3 style={{ fontWeight: 'bold', marginTop: '40px' }}>Similar food choices to the above suggestions.</h3>
                 {Object.keys(similarFoodProfiles).map((mealType) => (
                     <div key={mealType}>
@@ -92,15 +116,15 @@ const RecipeRecommendationPage = () => {
                         </Slider>
                     </div>
                 ))}
-            </div>
+            </div> */}
             <div className='similar user food recipes '>
                 <h3 style={{ fontWeight: 'bold', marginTop: '40px' }}>Foods preferred by individuals similar to your taste.</h3>
                 <Slider {...settings}>
-                    {similarUserFoodProfiles.map((recipes) => (
-                        <div key={recipes.id}>
+                    {similarUserFoodProfiles.map((recipe) => (
+                        <div key={recipe.id}>
                             <FoodCard
-                                Name={recipes.Name}
-                                Calories={recipes.Calories}
+                                Name={recipe.Name}
+                                Calories={recipe.Calorie}
                             />
                         </div>
                     ))}

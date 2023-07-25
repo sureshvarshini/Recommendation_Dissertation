@@ -13,7 +13,10 @@ const LoggedInLinks = () => {
         <Link className="nav-link active" to="/">Home</Link>
       </li>
       <li className="nav-item">
-        <a className="nav-link active" href='/' onClick={() => { logout() }}>Logout</a>
+        <a className="nav-link active" href='/' onClick={() => {
+          logout()
+          localStorage.clear()
+        }}>Logout</a>
       </li>
       <li className="nav-item">
         <Link className="nav-link active" to="/myaccount">My Account</Link>

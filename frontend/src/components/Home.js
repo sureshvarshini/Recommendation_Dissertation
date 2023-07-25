@@ -1,7 +1,6 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../Auth'
-import '../css/Home.css'
 import homeImage from "../assets/elderly_home.jpg"
 import foodBackground from "../assets/food_background.jpg"
 import foodRecommendation from "../assets/food_recommendation.jpg"
@@ -60,7 +59,7 @@ const NewUserHomePage = () => {
             <div class="row" style={{ backgroundColor: 'rgba(0, 0, 0, 0.7)' }}>
                 <div>
                     <br></br>
-                    <h2>Discover food recommendations for various meal occasions, such as Breakfast, Morning Snack, Lunch, Afternoon Snack, and Dinner.</h2>
+                    <h2 style={{ textAlign:'center', fontWeight: 'bold', color: 'white'}}>Discover food recommendations for various meal occasions, such as Breakfast, Morning Snack, Lunch, Afternoon Snack, and Dinner.</h2>
                     <br></br>
                 </div>
                 <div class="col-lg-4 col-md-12 mb-4 mb-lg-0" style={{ paddingLeft: '20px' }}>
