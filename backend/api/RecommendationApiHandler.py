@@ -1,5 +1,6 @@
 from flask_restful import Resource
 from flask import request, jsonify, make_response
+from datetime import datetime
 from models.Model import Food, Rating, User, Water
 from recommendation.RecommendFood import daily_calorie_intake, extract_macro_nutrients, choose_foods, get_similar_foods_recommendation, get_similar_users_recommendations
 
@@ -136,7 +137,7 @@ class WaterRecommendationResource(Resource):
             if amount:
                 water_quantity.amount = amount + water_quantity.amount
         else:
-            water_quantity = Water(user_id=id, amount=data['amount'])
+            water_quantity = Water(user_id=id, amount=data['amount'], last_entry=datetime.now())
 
         water_quantity.save()
 

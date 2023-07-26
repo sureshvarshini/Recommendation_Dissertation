@@ -1,4 +1,5 @@
 from flask_sqlalchemy import SQLAlchemy
+from datetime import datetime
 
 db = SQLAlchemy()
 
@@ -154,17 +155,25 @@ class Water(db.Model):
     id = db.Column(db.Integer(), primary_key=True, autoincrement=True)
     user_id = db.Column(db.Integer(), nullable=False)
     amount = db.Column(db.Float())
+    last_entry = db.Column(db.DateTime())
 
-    def __init__(self, user_id, amount):
+    def __init__(self, user_id, amount, last_entry):
         self.user_id = user_id
         self.amount = amount
+        self.last_entry = last_entry
 
     def __repr__(self):
         return f"User {self.user_id}: Water_level: {self.amount}"
+    
+    def as_dictionary(self):
+        return {column.name: getattr(self, column.name) for column in self.__table__.columns}
 
     @classmethod
     def fetch_by_user_id(self, id):
         return Water.query.filter_by(user_id=id).first()
+    
+    def fetch_all():
+        return Water.query.all()
 
     def save(self):
         db.session.add(self)
