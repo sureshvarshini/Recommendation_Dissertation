@@ -3,9 +3,11 @@ from flask import request, jsonify, make_response
 from datetime import datetime
 from models.Model import Food, Rating, User, Water
 from recommendation.RecommendFood import daily_calorie_intake, extract_macro_nutrients, choose_foods, get_similar_foods_recommendation, get_similar_users_recommendations
-
+from caching import cache
 
 class FoodRecommendationResource(Resource):
+    # To cache ebery 24 hours, timeout = 86400
+    @cache.cached(timeout=600) 
     def get(self, id):
         # id - user_id
         user = User.fetch_by_id(id=id)

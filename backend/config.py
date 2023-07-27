@@ -14,4 +14,6 @@ class Config:
     }
     SQLALCHEMY_ECHO = False
     DEBUG = True
-    PROPAGATE_EXCEPTIONS= config('PROPAGATE_EXCEPTIONS', cast=bool) 
+    PROPAGATE_EXCEPTIONS = config('PROPAGATE_EXCEPTIONS', cast=bool) 
+    CACHE_TYPE = config('CACHE_TYPE')
+    CACHE_DEFAULT_TIMEOUT = config('CACHE_DEFAULT_TIMEOUT')

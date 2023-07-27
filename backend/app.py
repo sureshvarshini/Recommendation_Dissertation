@@ -1,4 +1,4 @@
-from flask import Flask, send_from_directory
+from flask import Flask, current_app, send_from_directory
 from flask_restful import Api, Resource, reqparse
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
@@ -14,6 +14,7 @@ from ImportFood import import_food_csv_data
 from ImportRatings import import_rating_csv_data
 from ImportActivity import load_history_adl_data
 from ImportWater import reset_water
+from caching import cache
 
 app = Flask(__name__, static_url_path='', static_folder='frontend/build')
 CORS(app)
@@ -22,6 +23,7 @@ app.json.sort_keys = False
 api = Api(app)
 
 db.init_app(app)
+cache.init_app(app)
 JWTManager(app)
 
 # <----- Execute these lines for fresh app start ----->
