@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+import { Rating } from 'react-simple-star-rating'
 import { Modal } from 'react-bootstrap'
 import Slider from 'react-slick';
 import axios from 'axios'
@@ -15,6 +16,8 @@ const RecipeRecommendationPage = () => {
     const [ingredientsList, setIngredientsList] = useState([])
     const [directionsList, setDirectionsList] = useState([])
     const [show, setShow] = useState('')
+    const [rating, setRating] = useState(0)
+    const [previousRating, setPreviousRating] = useState('')
 
     let userId = localStorage.getItem('id')
 
@@ -30,6 +33,45 @@ const RecipeRecommendationPage = () => {
         setDirectionsList((recipe.Directions).split('.,'))
         console.log(directionsList)
         setShow(true)
+
+        // Get the ratings - to view when food card is clicked
+        axios.get(`/ratings/${userId}/${recipe.id}`)
+            .then(response => {
+                console.log("Success fetching rating for food.")
+                console.log(response.data)
+                setPreviousRating(response.data.rating)
+            }).catch(error => {
+                console.log("Error occured while fetching rating for food.")
+                console.log(error.response)
+            })
+    }
+
+    const handleRating = (rating) => {
+        console.log('Rating clicked.')
+        console.log(rating)
+        setRating(rating)
+
+        // Hit flask end point to submit rating for food-id
+        const data = {
+            rating: rating,
+            user_id: parseInt(userId),
+            food_id: selectedFoodProfile.id
+        }
+        const headers = {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+        }
+        const body = JSON.stringify(data)
+
+        console.log(body)
+        axios.post('/ratings', body, { headers: headers })
+            .then(response => {
+                console.log("Success updating rating of food.")
+                console.log(response.data)
+            }).catch(error => {
+                console.log("Error occured while updating rating of food profile.")
+                console.log(error.response)
+            })
     }
 
     // Get recipe from flask endpoint
@@ -75,6 +117,10 @@ const RecipeRecommendationPage = () => {
                         {selectedFoodProfile?.Name}
                     </Modal.Title>
                 </Modal.Header>
+                <div className='d-flex justify-content-center'>
+                    <Rating onClick={handleRating} ratingValue={rating} initialValue={previousRating} size={60} label transition fillColor='#ff0088' emptyColor='#d9d4d7' />
+                </div>
+                <p className='d-flex justify-content-center'>(Click here to add your latest rating and help us improve.)</p>
                 <Modal.Body style={{ fontSize: '20px' }}>
                     <p style={{ fontWeight: 'bold' }}>Ingredients:</p>
                     <ul>
