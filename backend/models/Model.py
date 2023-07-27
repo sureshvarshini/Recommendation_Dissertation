@@ -128,12 +128,20 @@ class Rating(db.Model):
     food_id = db.Column(db.Integer(), nullable=False)
     rating = db.Column(db.Integer(), nullable=False)
 
+    def __init__(self, user_id, food_id, rating):
+        self.user_id = user_id
+        self.food_id = food_id
+        self.rating = rating
+
+    def __repr__(self):
+        return f"User Id{self.user_id}: Rating: {self.rating}"
+
     def as_dictionary(self):
         return {column.name: getattr(self, column.name) for column in self.__table__.columns}
 
     @classmethod
-    def fetch_by_user_id(self, id):
-        return Rating.query.filter_by(user_id=id).all()
+    def fetch_by_user_and_food_id(self, id, food_id):
+        return Rating.query.filter_by(user_id=id, food_id=food_id).first()
 
     def fetch_all_ratings():
         return [each_rating.as_dictionary() for each_rating in Rating.query.all()]

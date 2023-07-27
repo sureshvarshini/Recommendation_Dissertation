@@ -5,9 +5,10 @@ from models.Model import Food, Rating, User, Water
 from recommendation.RecommendFood import daily_calorie_intake, extract_macro_nutrients, choose_foods, get_similar_foods_recommendation, get_similar_users_recommendations
 from caching import cache
 
+
 class FoodRecommendationResource(Resource):
-    # To cache ebery 24 hours, timeout = 86400
-    @cache.cached(timeout=600) 
+    # To cache every 24 hours in seconds, timeout = 86400
+    @cache.cached(timeout=120)
     def get(self, id):
         # id - user_id
         user = User.fetch_by_id(id=id)
@@ -52,8 +53,8 @@ class FoodRecommendationResource(Resource):
                 similar_food_object = {
                     "id": similar_food.id,
                     "Name": similar_food.name,
-                    "Servings": db_food.servings,
-                    "Ingredients": db_food.ingredients,
+                    "Servings": similar_food.servings,
+                    "Ingredients": similar_food.ingredients,
                     "Directions": similar_food.directions,
                     "Calories": similar_food.calories
                 }
@@ -73,9 +74,9 @@ class FoodRecommendationResource(Resource):
             rated_food_object = {
                 "id": rated_food.id,
                 "Name": rated_food.name,
-                "Servings": db_food.servings,
-                "Ingredients": db_food.ingredients,
-                "Directions": similar_food.directions,
+                "Servings": rated_food.servings,
+                "Ingredients": rated_food.ingredients,
+                "Directions": rated_food.directions,
                 "Calories": rated_food.calories
             }
             rated_food_choices.append(rated_food_object)
@@ -96,9 +97,18 @@ class AddRatingResource(Resource):
         food_id = data["food_id"]
         rating = data["rating"]
 
-        new_rating = Rating(user_id=user_id, food_id=food_id, rating=rating)
-
-        new_rating.save()
+        # Check if the user has previously rated the food, if yes update the row or add a new rating row
+        old_rating = Rating.fetch_by_user_and_food_id(
+            id=user_id, food_id=food_id)
+        if old_rating is not None:
+            print('Updating row')
+            old_rating.rating = rating
+            old_rating.save()
+        else:
+            print('Creating new row')
+            new_rating = Rating(
+                user_id=user_id, food_id=food_id, rating=rating)
+            new_rating.save()
 
         return make_response(jsonify({
             "message": "Rating updated successfuly.",
@@ -107,14 +117,13 @@ class AddRatingResource(Resource):
 
 
 class ViewRatingResource(Resource):
-    def get(self, id):
-        all_ratings = Rating.fetch_by_user_id(id=id)
-        rating = []
-        food_id = []
+    def get(self, id, food_id):
+        user_rating = Rating.fetch_by_user_and_food_id(id=id, food_id=food_id)
 
-        for db_rating in all_ratings:
-            food_id.append(db_rating.food_id)
-            rating.append(db_rating.rating)
+        if user_rating is not None:
+            rating = user_rating.rating
+        else:
+            rating = 0
 
         return make_response(jsonify({
             "user_id": id,
@@ -139,7 +148,8 @@ class WaterRecommendationResource(Resource):
             if amount:
                 water_quantity.amount = amount + water_quantity.amount
         else:
-            water_quantity = Water(user_id=id, amount=data['amount'], last_entry=datetime.now())
+            water_quantity = Water(
+                user_id=id, amount=data['amount'], last_entry=datetime.now())
 
         water_quantity.save()
 
