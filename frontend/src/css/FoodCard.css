@@ -1,4 +1,4 @@
-.card {
+.food-card {
     background-color: lightgoldenrodyellow;
     color: #05052D;
     padding: 20px;
@@ -11,25 +11,25 @@
     margin-top: 20px;
 }
 
-.card:hover {
+.food-card:hover {
     transition: 200ms;
     border: 4px;
     border-color: tomato;
     border-style: solid;
 }
 
-.card-header {
+.food-card-header {
     display: flex;
     flex-wrap: nowrap;
     align-items: center;
 }
 
-.card-title-group {
+.food-card-title-group {
     text-align: center;
     font-family: sans-serif;
 }
 
-.card-title {
+.food-card-title {
     flex: 0.5;
     font-size: 30px;
     margin-bottom: 0;
@@ -37,19 +37,20 @@
     font-weight: bold;
 }
 
-.card-image {
+.food-card-image {
+    width: 560px;
     border-radius: 10px;
     margin-bottom: 10px;
     margin-top: 10px;
 }
 
-.card-text {
+.food-card-text {
     font-family: sans-serif;
     width: 350px;
     font-size: large;
 }
 
-.card-like-bar {
+.food-card-like-bar {
     display: flex;
     align-items: center;
     margin-top: 20px;

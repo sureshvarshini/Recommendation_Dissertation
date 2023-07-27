@@ -1,18 +1,12 @@
 import React, { useEffect, useState } from 'react'
-import { Form, Button, Modal } from 'react-bootstrap'
-import { Link, useNavigate } from 'react-router-dom'
-import { useForm } from 'react-hook-form'
+import { Button } from 'react-bootstrap'
 import axios from 'axios'
-import { logout } from '../Auth'
 import '../css/WaterTracker.css'
 import water from "../assets/water.jpg"
 
 const WaterTrackerPage = () => {
     const [waterIntakeStatus, setWaterIntakeStatus] = useState('')
     const [waterIntakeDetails, setWaterIntakeDetails] = useState('')
-    const [waterAmount, setWaterAmount] = useState('')
-    const { register, watch, handleSubmit, reset, formState: { errors } } = useForm()
-    const navigate = useNavigate()
     let userId = localStorage.getItem('id')
 
     const logWater = (data) => {
@@ -30,7 +24,7 @@ const WaterTrackerPage = () => {
             .then(response => {
                 console.log("Success upadting water details.")
                 console.log(response.data)
-                window.location.reload(false)
+                const reload = window.location.reload()
             })
             .catch(error => {
                 console.log("Error occured from fetching water details.")

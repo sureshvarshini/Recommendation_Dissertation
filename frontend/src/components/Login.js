@@ -35,6 +35,7 @@ const LoginPage = () => {
 
                 // Set the logged in user id in local storage - for accessing details in my account page
                 localStorage.setItem('id', response.data.id);
+                localStorage.setItem('REACT_TOKEN_REFRESH_KEY', '"' + response.data.refresh_token + '"')
 
                 // Page you want re-direct to after login - right now its home page
                 navigate('/')

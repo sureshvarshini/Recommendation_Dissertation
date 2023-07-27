@@ -3,7 +3,7 @@ import { Form, Button, Modal } from 'react-bootstrap'
 import { useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import axios from 'axios'
-import { logout } from '../Auth'
+import { login, logout } from '../Auth'
 import UserProfile from './UserProfile'
 import '../css/MyAccount.css'
 
@@ -95,6 +95,33 @@ const MyAccountPage = () => {
             }).catch(error => {
                 console.log("Error occured while fetching user profile.")
                 console.log(error.response)
+
+                // Fetching refresh token when token expires.
+                if (error.response.status == 401) {
+                    console.log("Retrying to log in the user")
+                    let refreshToken = localStorage.getItem('REACT_TOKEN_REFRESH_KEY')
+
+                    if (!refreshToken) {
+                        logout()
+                        localStorage.clear()
+                        return
+                    }
+                    const refresh_headers = {
+                        'Authorization': `Bearer ${JSON.parse(refreshToken)}`
+                    }
+                    axios.post('/user/token/refresh', {}, { headers: refresh_headers })
+                        .then(response => {
+                            console.log("Success from fetching refresh token from /refresh endpoint")
+                            console.log(response.data)
+                            login(response.data.access_token)
+                            const reload = window.location.reload()
+                            reload()
+                        })
+                        .catch(error => {
+                            console.log("Error occured during token refresh. myaccount.js")
+                            console.log(error.response)
+                        })
+                }
             })
     }, [])
 
