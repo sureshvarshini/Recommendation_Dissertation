@@ -120,7 +120,7 @@ const RecipeRecommendationPage = () => {
                 <div className='d-flex justify-content-center'>
                     <Rating onClick={handleRating} ratingValue={rating} initialValue={previousRating} size={60} label transition fillColor='#ff0088' emptyColor='#d9d4d7' />
                 </div>
-                <p className='d-flex justify-content-center'>(Click here to add your latest rating and help us improve.)</p>
+                <p className='d-flex justify-content-center'>(Click here to add your latest rating and help us improve)</p>
                 <Modal.Body style={{ fontSize: '20px' }}>
                     <p style={{ fontWeight: 'bold' }}>Ingredients:</p>
                     <ul>
@@ -171,17 +171,14 @@ const RecipeRecommendationPage = () => {
                 <div className='recommended recipes'>
                     {Object.keys(recommendedFoodProfiles).map((mealType) => (
                         <div key={mealType}>
-                            <h2 style={{ display: 'flex', justifyContent: 'center', color: 'white', marginTop: '30px', backgroundColor: '#FF0078', borderRadius: '10px', padding: 10 }}>{mealType}</h2>
+                            <h2 style={{ display: 'flex', justifyContent: 'center', color: 'white', marginTop: '30px', backgroundColor: '#FF0078', borderRadius: '10px', padding: 10, fontWeight: 'bold' }}>{mealType}</h2>
                             <Slider {...settings}>
                                 {recommendedFoodProfiles[mealType].map((recipe) => (
                                     <div key={recipe.id}>
                                         <FoodCard
                                             Name={recipe.Name}
-                                            Quantity={recipe.Quantity}
                                             Calories={recipe.Calories}
-                                            Servings={recipe.Servings}
-                                            Directions={recipe.Directions}
-                                            Ingredients={recipe.Ingredients}
+                                            Image={recipe.Image}
                                             onClick={() => { showModal(recipe) }}
                                         />
                                     </div>
@@ -242,10 +239,8 @@ const RecipeRecommendationPage = () => {
                             <div key={recipe.id}>
                                 <FoodCard
                                     Name={recipe.Name}
-                                    Calories={recipe.Calorie}
-                                    Servings={recipe.Servings}
-                                    Directions={recipe.Directions}
-                                    Ingredients={recipe.Ingredients}
+                                    Calories={recipe.Calories}
+                                    Image={recipe.Image}
                                     onClick={() => { showModal(recipe) }}
                                 />
                             </div>
