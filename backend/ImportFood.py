@@ -23,6 +23,7 @@ class Food(Base):
     ingredients = Column(String())
     directions = Column(String())
     type = Column(String())
+    image = Column(String())
     calories = Column(Float())
     vitamin_a = Column(Float())
     vitamin_c = Column(Float())

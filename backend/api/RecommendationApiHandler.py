@@ -41,7 +41,8 @@ class FoodRecommendationResource(Resource):
                     "Ingredients": db_food.ingredients,
                     "Directions": db_food.directions,
                     "Quantity": str(meal_options[food_id]) + 'g',
-                    "Calories": db_food.calories
+                    "Calories": db_food.calories,
+                    "Image": db_food.image
                 }
                 recommended_response.append(db_food_object)
 
@@ -56,7 +57,8 @@ class FoodRecommendationResource(Resource):
                     "Servings": similar_food.servings,
                     "Ingredients": similar_food.ingredients,
                     "Directions": similar_food.directions,
-                    "Calories": similar_food.calories
+                    "Calories": similar_food.calories,
+                    "Image": similar_food.image
                 }
                 similar_food_response.append(similar_food_object)
 
@@ -77,7 +79,8 @@ class FoodRecommendationResource(Resource):
                 "Servings": rated_food.servings,
                 "Ingredients": rated_food.ingredients,
                 "Directions": rated_food.directions,
-                "Calories": rated_food.calories
+                "Calories": rated_food.calories,
+                "Image": rated_food.image
             }
             rated_food_choices.append(rated_food_object)
 

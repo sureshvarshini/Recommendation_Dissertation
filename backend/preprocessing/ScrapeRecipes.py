@@ -6,6 +6,7 @@ import pandas as pd
 import os
 import time
 
+
 def recipe_images():
     # Function to scrape image url of the recipes.
     service = Service(
@@ -13,11 +14,13 @@ def recipe_images():
     options = webdriver.ChromeOptions()
     driver = webdriver.Chrome(service=service, options=options)
     driver.get(
-            'https://www.myplate.gov/myplate-kitchen/recipes?items_per_page=100&sort_bef_combine=title_ASC')
+        'https://www.myplate.gov/myplate-kitchen/recipes?items_per_page=100&sort_bef_combine=title_ASC')
     time.sleep(3)
 
-    image_results = driver.find_elements(By.XPATH, "//img[contains(@class,'image-style-medium')]")
-    food_results = driver.find_elements(By.XPATH, ".//span[@class = 'field field--name-title field--type-string field--label-hidden']")
+    image_results = driver.find_elements(
+        By.XPATH, "//img[contains(@class,'image-style-medium')]")
+    food_results = driver.find_elements(
+        By.XPATH, ".//span[@class = 'field field--name-title field--type-string field--label-hidden']")
 
     image_source = []
     food_titles = []
@@ -25,24 +28,39 @@ def recipe_images():
     for image in image_results:
         image_source.append(image.get_attribute('src'))
     for name in food_results:
-        food_titles.append(name.text)   
+        food_titles.append(name.text)
 
-    try:
-        pages = driver.find_element(
-            By.CLASS_NAME, 'pager').find_elements(By.TAG_NAME, 'li')
-        for page in range(1, len(pages)+1):
-            print(f'In page: {page}')
-            try:
-                driver.find_element(
-                    By.XPATH, '//*[@id="block-myplate-content"]/div/div/nav/ul/li[' + str(page) + ']/a').click()
-                time.sleep(5)
-            except NoSuchElementException:
-                print('No more pages to load!')
-                continue
+    print("Image urls:------")
+    print(image_source)
+    print("Name of recipes:")
+    print(food_titles)
 
-    except NoSuchElementException:
+    while True:
+        try:
+            next_page = driver.find_element(
+                By.CLASS_NAME, 'pager').find_element(By.TAG_NAME, 'li').find_element(By.XPATH, "//a[@title='Go to next page']")
+            time.sleep(10)
+            next_page.click()
+            time.sleep(10)
+
+            image_results = driver.find_elements(
+                By.XPATH, "//img[contains(@class,'image-style-medium')]")
+            food_results = driver.find_elements(
+                By.XPATH, ".//span[@class = 'field field--name-title field--type-string field--label-hidden']")
+
+            for image in image_results:
+                image_source.append(image.get_attribute('src'))
+            for name in food_results:
+                food_titles.append(name.text)
+            
+            print("Image urls:------")
+            print(image_source)
+            print("Name of recipes:")
+            print(food_titles)
+
+        except NoSuchElementException:
             print('No next page exists.')
-
+            break
 
 def navigate():
     service = Service(

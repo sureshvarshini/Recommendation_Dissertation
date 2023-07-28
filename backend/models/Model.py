@@ -75,6 +75,7 @@ class Food(db.Model):
     ingredients = db.Column(db.String())
     directions = db.Column(db.String())
     type = db.Column(db.String())
+    image = db.Column(db.String())
     calories = db.Column(db.Float())
     vitamin_a = db.Column(db.Float())
     vitamin_c = db.Column(db.Float())
@@ -87,12 +88,13 @@ class Food(db.Model):
     fat = db.Column(db.Float())
     folate = db.Column(db.Float())
 
-    def __init__(self, name, servings, ingredients, directions, type, calories, vitamin_a, vitamin_c, vitamin_d, calcium, protein, carbohydrates, fiber, sugars, fat, folate):
+    def __init__(self, name, servings, ingredients, directions, type, image, calories, vitamin_a, vitamin_c, vitamin_d, calcium, protein, carbohydrates, fiber, sugars, fat, folate):
         self.name = name
         self.servings = servings
         self.ingredients = ingredients
         self.directions = directions
         self.type = type
+        self.image = image
         self.calories = calories
         self.vitamin_a = vitamin_a
         self.vitamin_c = vitamin_c
