@@ -82,7 +82,7 @@ const RecipeRecommendationPage = () => {
                 console.log(response.data)
                 setRecommendedFoodProfiles(response.data.recommended_foods)
                 setSimilarFoodProfiles(response.data.similar_food_choices)
-                setSimilarUserFoodProfiles(response.data.similar_user_food_choices)
+                setSimilarUserFoodProfiles(response.data.hybrid_food_choices)
                 console.log(similarUserFoodProfiles)
                 setDone(true)
             }).catch(error => {
@@ -188,24 +188,6 @@ const RecipeRecommendationPage = () => {
                     ))}
                 </div>
             )}
-            {/* <div className='similar food recipes '>
-                <h3 style={{ fontWeight: 'bold', marginTop: '40px' }}>Similar food choices to the above suggestions.</h3>
-                {Object.keys(similarFoodProfiles).map((mealType) => (
-                    <div key={mealType}>
-                        <h2 style={{ display: 'flex', justifyContent: 'center', color: 'white', marginTop: '30px', backgroundColor: '#029922', borderRadius: '10px', padding: 10 }}>{mealType}</h2>
-                        <Slider {...settings}>
-                            {similarFoodProfiles[mealType].map((recipes) => (
-                                <div key={recipes.id}>
-                                    <FoodCard
-                                        Name={recipes.Name}
-                                        Calories={recipes.Calories}
-                                    />
-                                </div>
-                            ))}
-                        </Slider>
-                    </div>
-                ))}
-            </div> */}
             <div className='similar user food recipes '>
                 <h3 style={{ fontWeight: 'bold', marginTop: '40px' }}>Foods preferred by individuals similar to your taste.</h3>
                 {!done ? (
