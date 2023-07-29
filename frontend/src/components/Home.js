@@ -1,6 +1,7 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { useAuth } from '../Auth'
+import { useAuth, login, logout } from '../Auth'
+import axios from 'axios'
 import homeImage from "../assets/elderly_home.jpg"
 import foodBackground from "../assets/food_background.jpg"
 import foodRecommendation from "../assets/food_recommendation.jpg"
@@ -15,13 +16,62 @@ import home_8 from "../assets/home_8.jpg"
 
 // View contents based on whether a user is logged in or a new user
 const LoggedInHomePage = () => {
+    const [name, setName] = useState('')
+
+    let accessToken = localStorage.getItem('REACT_TOKEN_AUTH_KEY')
+    let userId = localStorage.getItem('id')
+
+    const headers = {
+        'Authorization': `Bearer ${JSON.parse(accessToken)}`
+    }
+
+    useEffect(() => {
+        axios.get(`/user/${userId}`, { headers: headers })
+            .then(response => {
+                console.log("Home page: Success fetching the user profile.")
+                console.log(response.data)
+                setName(response.data.Firstname)
+            }).catch(error => {
+                console.log("Home page: Error occured while fetching user profile.")
+                console.log(error.response)
+
+                // Fetching refresh token when token expires.
+                if (error.response.status == 401) {
+                    console.log("Home page: Retrying to log in the user")
+                    let refreshToken = localStorage.getItem('REACT_TOKEN_REFRESH_KEY')
+
+                    if (!refreshToken) {
+                        logout()
+                        localStorage.clear()
+                        return
+                    }
+                    const refresh_headers = {
+                        'Authorization': `Bearer ${JSON.parse(refreshToken)}`
+                    }
+                    axios.post('/user/token/refresh', {}, { headers: refresh_headers })
+                        .then(response => {
+                            console.log("Home page: Success from fetching refresh token from /refresh endpoint")
+                            console.log(response.data)
+                            login(response.data.access_token)
+                            const reload = window.location.reload()
+                            reload()
+                        })
+                        .catch(error => {
+                            console.log("Home page: Error occured during token refresh. myaccount.js")
+                            console.log(error.response)
+                        })
+                }
+            })
+    }, [])
+
     return (
         <>
-            <div class="text-center bg-image" style={{ backgroundImage: `url(${foodBackground})`, marginTop: '66px' }}>
+            <div class="text-center bg-image" style={{ backgroundImage: `url(${foodBackground})`, marginTop: '50px' }}>
                 <div class="mask" style={{ backgroundColor: 'rgba(0, 0, 0, 0.7', height: '800px' }}>
                     <div class="d-flex justify-content-center h-50">
                         <div class="text-white">
-                            <h1 class="mb-3" style={{ fontWeight: 'bold', marginTop: '200px' }}>Welcome back to AssistWise</h1>
+                            <h1 class="mb-3" style={{ fontWeight: 'bold', marginTop: '100px' }}>Hi, {name}!</h1>
+                            <h1 class="mb-3" style={{ fontWeight: 'bold' }}>Welcome back to AssistWise</h1>
                             <a href='/recommendations/food'>
                                 <img style={{ width: 300, height: 400, borderRadius: 20, marginRight: 50 }} src={foodRecommendation} class="card-img-top" alt="Banana bread on plate" />
                             </a>
@@ -30,7 +80,7 @@ const LoggedInHomePage = () => {
                             </a>
                         </div>
                     </div>
-                    <div class="d-flex justify-content-center" style={{ margin: 100, marginTop: '270px', marginRight: '70px' }}>
+                    <div class="d-flex justify-content-center" style={{ margin: 100, marginTop: '220px', marginRight: '70px' }}>
                         <Link style={{ borderRadius: 20, fontWeight: 'bold' }} to='/recommendations/food' className="btn btn-outline-light btn-lg m-4">FOOD RECOMMENDATIONS</Link>
                         <Link style={{ borderRadius: 20, fontWeight: 'bold' }} to='/recommendations/water' className="btn btn-outline-light btn-lg m-4">WATER RECOMMENDATIONS</Link>
                     </div>
@@ -59,7 +109,7 @@ const NewUserHomePage = () => {
             <div class="row" style={{ backgroundColor: 'rgba(0, 0, 0, 0.7)' }}>
                 <div>
                     <br></br>
-                    <h2 style={{ textAlign:'center', fontWeight: 'bold', color: 'white'}}>Discover food recommendations for various meal occasions, such as Breakfast, Morning Snack, Lunch, Afternoon Snack, and Dinner.</h2>
+                    <h2 style={{ textAlign: 'center', fontWeight: 'bold', color: 'white' }}>Discover food recommendations for various meal occasions, such as Breakfast, Morning Snack, Lunch, Afternoon Snack, and Dinner.</h2>
                     <br></br>
                 </div>
                 <div class="col-lg-4 col-md-12 mb-4 mb-lg-0" style={{ paddingLeft: '20px' }}>
