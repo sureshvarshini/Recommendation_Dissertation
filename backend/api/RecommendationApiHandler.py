@@ -2,7 +2,7 @@ from flask_restful import Resource
 from flask import request, jsonify, make_response
 from datetime import datetime
 from models.Model import Food, Rating, User, Water
-from recommendation.RecommendFood import daily_calorie_intake, extract_macro_nutrients, choose_foods, get_similar_foods_recommendation, get_similar_users_recommendations
+from recommendation.RecommendFood import daily_calorie_intake, extract_macro_nutrients, choose_foods, get_similar_foods_recommendation, get_similar_users_recommendations, get_hybrid_recommendation
 from caching import cache
 
 
@@ -27,12 +27,14 @@ class FoodRecommendationResource(Resource):
         food_choices = choose_foods(
             macro_nutrients_ratio=macro_nutrients_ratio, foods=all_foods)
 
+        temp_id= []
         recommended_meal_choices = {}
         similar_meal_choices = {}
         for meal_type, meal_options in food_choices.items():
             recommended_response = []
             similar_food_response = []
             for food_id in meal_options:
+                temp_id.append(food_id)
                 db_food = Food.fetch_by_id(id=food_id)
                 db_food_object = {
                     "id": db_food.id,
@@ -84,10 +86,28 @@ class FoodRecommendationResource(Resource):
             }
             rated_food_choices.append(rated_food_object)
 
+        hybrid_recommendation_ids = get_hybrid_recommendation(similar_users_recommendation_food_ids=rated_food_ids, foods=all_foods, chosen_food_id=temp_id)
+
+        hybrid_food_choices = []
+        for id in hybrid_recommendation_ids:
+            food = Food.fetch_by_id(id=id)
+            food_object = {
+                "id": food.id,
+                "Name": food.name,
+                "Servings": food.servings,
+                "Ingredients": food.ingredients,
+                "Directions": food.directions,
+                "Calories": food.calories,
+                "Image": food.image
+            }
+            hybrid_food_choices.append(food_object)
+
+
         return make_response(jsonify({
             "recommended_foods": recommended_meal_choices,
             "similar_food_choices": similar_meal_choices,
-            "similar_user_food_choices": rated_food_choices
+            "similar_user_food_choices": rated_food_choices,
+            "hybrid_food_choices": hybrid_food_choices
         }), 200)
 
 

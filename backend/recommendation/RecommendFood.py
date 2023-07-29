@@ -247,7 +247,7 @@ def get_similar_users_recommendations(user_id, ratings, users):
 
     user_cluster = users_df.loc[user_id, 'cluster']
     similar_users = (users_df[users_df['cluster'] ==
-                     user_cluster]).nlargest(3, 'age')
+                     user_cluster]).nlargest(3, 'illness')
     similar_users = similar_users[similar_users.index != user_id]
 
     rated_food_ids = []
@@ -276,3 +276,13 @@ def get_similar_foods_recommendation(food_id, foods):
     similarity_scores = similarity_scores[1:6]
     food_indices = [i[0] for i in similarity_scores]
     return food_indices
+
+
+def get_hybrid_recommendation(similar_users_recommendation_food_ids, foods, chosen_food_id):
+    hybrid_recommendation = []
+    for food_id in similar_users_recommendation_food_ids:
+        id = get_similar_foods_recommendation(food_id, foods)
+        if id not in hybrid_recommendation and chosen_food_id not in hybrid_recommendation:
+            hybrid_recommendation.extend(id)
+
+    return list(set(hybrid_recommendation))
