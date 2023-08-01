@@ -2,7 +2,10 @@ from models.Model import User
 import os
 import re
 import pandas as pd
+import numpy as np
 import warnings
+from sklearn.cluster import KMeans
+from sklearn.preprocessing import LabelEncoder
 from datetime import datetime
 warnings.filterwarnings("ignore")
 
@@ -16,13 +19,16 @@ ADL_CSV_DATASET_LOCATION = os.getcwd() + "\\preprocessing\\cleanedDatasets\\ADL\
 UPLOAD_FILE_LOCATION = os.getcwd(
 ) + "\\preprocessing\\datasets\\Activity_predictor\\request\\"
 
+MORNING_ACTIVITIES = ['walking', 'exercise', 'hobbies']
+EVENING_ACTIVITIES = ['reading', 'gardening', 'yoga']
+
 
 def categorize_activity_level(activities):
     ACTIVITY_LEVELS = {
-        'sedentary': ['watch_tv', 'study', 'eat', 'snack'],
+        'sedentary': ['watch_tv', 'study', 'eat', 'snack', 'read'],
         'low_active': ['personal_hygiene', 'bed_to_toilet', 'wakeup', 'shower', 'bed_toilet_transition', 'enter_home'],
-        'active': ['work', 'wash_bathtub', 'clean', 'cleaning', 'meal_preparation', 'cooking', 'cook', 'leave_home'],
-        'very_active': ['exercise', 'run', 'jog']
+        'active': ['work', 'wash_bathtub', 'wash_dishes' 'clean', 'cleaning', 'meal_preparation', 'cooking', 'cook', 'leave_home', 'gardening'],
+        'very_active': ['exercise', 'run', 'jog', 'yoga', 'walk']
     }
 
     user_level_activity = {}
@@ -61,8 +67,6 @@ def append_data(file):
 
 
 def clean_adl_data(file_name):
-    print(">>>> Cleaning incoming ADL data.")
-
     # Convert txt file to csv, adding commas and removinh unwanted space
     with open(UPLOAD_FILE_LOCATION + file_name, 'rt') as infile, open(ADL_RAW_DATASET_LOCATION + 'data.csv', 'w') as outfile:
         for line in infile:
@@ -107,7 +111,8 @@ def clean_adl_data(file_name):
         "_end", "", regex=True)
 
     subset_file.to_csv(ADL_CSV_DATASET_LOCATION +
-                       'data-cleaned.csv', index=False)
+                       'data-cleaned.csv', mode='a', index=False, header=False)
+    subset_file.to_csv(UPLOAD_FILE_LOCATION + 'data-temp.csv', index=False)
 
     ongoing_activities = {}
     activity_tracking = {}
@@ -117,7 +122,6 @@ def clean_adl_data(file_name):
     for id in user_ids:
         ongoing_activities[id] = {}
         activity_tracking[id] = {}
-
     for index, row in subset_file.iterrows():
         activity = row['activity']
         activity_name = row['activity_name']
@@ -145,13 +149,16 @@ def clean_adl_data(file_name):
     total_days = (end - start).days
 
     combined_activities = activity_tracking['ALL']
-
     for user_id, activities in activity_tracking.items():
         activity_tracking[user_id].update(combined_activities)
         for activity, duration in activities.items():
-            activity_tracking[user_id][activity] = round(
-                duration/total_days)
-
+            # Divide by total days if incoming dataset contains data for more than 30 days
+            if total_days != 0:
+                activity_tracking[user_id][activity] = round(
+                    duration/total_days)
+            else:
+                activity_tracking[user_id][activity] = round(
+                    duration)
     activity_tracking.pop('ALL')
 
     # Reverse sort activities
@@ -159,3 +166,88 @@ def clean_adl_data(file_name):
                          for key, value in activity_tracking.items()}
 
     categorize_activity_level(activities=sorted_activities)
+    analyse_meal_times(
+        csv_file_location=UPLOAD_FILE_LOCATION + 'data-temp.csv')
+
+
+def analyse_meal_times(csv_file_location):
+    csv_file = pd.read_csv(csv_file_location)
+    csv_file['datetime'] = pd.to_datetime(csv_file['datetime'])
+    csv_file['hour'] = csv_file['datetime'].dt.hour
+    csv_file['minute'] = csv_file['datetime'].dt.minute
+    user_ids = csv_file['user_id'].unique()
+
+    encoder = LabelEncoder()
+    csv_file['activity_name'] = encoder.fit_transform(
+        csv_file['activity_name'])
+    csv_file['user_id'] = encoder.fit_transform(csv_file['user_id'])
+
+    X = csv_file[['hour', 'minute', 'activity_name', 'user_id']]
+
+    kmeans = KMeans(n_clusters=3, random_state=42)
+    csv_file['cluster'] = kmeans.fit_predict(X)
+
+    time_slots = [7, 8, 10, 12, 14, 16, 18, 20, 21, 22]
+
+    # Initialize an empty dictionary to store the recommended meal times for each cluster and time slot
+    meal_times_recommendations = {}
+
+    # Group the data by cluster and time slot and calculate the mean hour for each group
+    for cluster_id in range(3):
+        cluster_data = csv_file[csv_file['cluster'] == cluster_id]
+        cluster_recommendations = []
+
+        for i in range(len(time_slots) - 1):
+            start_time = time_slots[i]
+            end_time = time_slots[i + 1]
+
+            # Get the mean hour for the current time slot in the cluster
+            mean_hour = cluster_data[(cluster_data['hour'] >= start_time) & (
+                cluster_data['hour'] < end_time)]['hour'].mean()
+            cluster_recommendations.append(mean_hour)
+
+        meal_times_recommendations[f'Cluster {cluster_id + 1}'] = cluster_recommendations
+
+    # Convert the dictionary to a DataFrame for easier visualization
+    recommendations_df = pd.DataFrame(meal_times_recommendations)
+    recommendations_df.index = ['Morning', 'Morning activities 1', 'Morning snack', 'Morning activities 2',
+                                'Lunch', 'Afternoon activities', 'Afternoon Snack', 'Evening activities', 'Dinner']
+
+    user_schedule = {
+        'Morning': 7,
+        'Morning activities 1': 8,
+        'Morning snack': 10,
+        'Morning activities 2': 11,
+        'Lunch': 13,
+        'Afternoon activities': 14,
+        'Afternoon Snack': 16,
+        'Evening activities': 17,
+        'Dinner': 19
+    }
+
+    for index, row in recommendations_df.iterrows():
+        n = 0
+        if np.isnan(row['Cluster 1']):
+            cluster_1 = 0
+        else:
+            cluster_1 = row['Cluster 1']
+            n = n + 1
+        if np.isnan(row['Cluster 2']):
+            cluster_2 = 0
+        else:
+            cluster_2 = row['Cluster 2']
+            n = n + 1
+        if np.isnan(row['Cluster 3']):
+            cluster_3 = 0
+        else:
+            cluster_3 = row['Cluster 3']
+            n = n + 1
+
+        user_schedule[row.name] = user_schedule[row.name] if n is 0 else round((cluster_1 + cluster_2 + cluster_3)/n)
+
+    # Update user schedule in profile db
+    for id in user_ids:
+        if id != 'ALL':
+            print(id[1:])
+            User.update_schedule(id=id[1:], schedule=user_schedule)
+

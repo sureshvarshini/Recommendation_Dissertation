@@ -1,12 +1,13 @@
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import Column, Text, Integer, String, JSON,  create_engine
 import os
 import re
+import csv
 import pandas as pd
 import warnings
 from datetime import datetime
 warnings.filterwarnings("ignore")
-from sqlalchemy import Column, Text, Integer, String, create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
 
 BASE_DIRECTORY = os.path.dirname(os.path.realpath(__file__))
 
@@ -39,6 +40,18 @@ class User(Base):
     weight = Column(Integer())
     illness = Column(String())
     activity_level = Column(String())
+    schedule = Column(JSON())
+
+
+class Activity(Base):
+    __tablename__ = 'activity'
+
+    id = Column(Integer(), primary_key=True, autoincrement=True)
+    name = Column(String(), nullable=False)
+    type = Column(String())
+    directions = Column(String())
+    repetitions = Column(String())
+    image = Column(String())
 
 
 def update_user_activity_level(id, activity_level):
@@ -47,16 +60,18 @@ def update_user_activity_level(id, activity_level):
     if user_data is not None:
         user_data.activity_level = activity_level
         session.commit()
-        print(f">>>> Updated user: {id} activity_level in DB successfully.")
+        print(f"Updated user: {id} activity_level in DB successfully.")
     else:
-        print(f">>>> Not updating activity level for user: {id}, since user not found.")
+        print(
+            f"Not updating activity level for user: {id}, since user not found.")
+
 
 def categorize_activity_level(activities):
     ACTIVITY_LEVELS = {
-        'sedentary': ['watch_tv', 'study'],
-        'low_active': ['personal_hygiene', 'bed_to_toilet', 'wakeup', 'shower', 'bed_toilet_transition'],
-        'active': ['work', 'wash_bathtub', 'clean', 'cleaning', 'meal_preparation', 'cooking'],
-        'very_active': ['exercise', 'run', 'jog']
+        'sedentary': ['watch_tv', 'study', 'eat', 'snack', 'read'],
+        'low_active': ['personal_hygiene', 'bed_to_toilet', 'wakeup', 'shower', 'bed_toilet_transition', 'enter_home'],
+        'active': ['work', 'wash_bathtub', 'wash_dishes' 'clean', 'cleaning', 'meal_preparation', 'cooking', 'cook', 'leave_home', 'gardening'],
+        'very_active': ['exercise', 'run', 'jog', 'yoga', 'walk']
     }
 
     user_level_activity = {}
@@ -83,9 +98,10 @@ def categorize_activity_level(activities):
         user_level_activity[user_id] = level_of_activity
 
     # Find and update greatest level of activity for a user
-    final_activity_level = {}
     for user_id, user_level in user_level_activity.items():
-        update_user_activity_level(id=user_id[1:], activity_level=max(user_level, key=user_level.get))
+        update_user_activity_level(
+            id=user_id[1:], activity_level=max(user_level, key=user_level.get))
+
 
 def load_history_adl_data():
     print(">>>> Loading ADL data the start of application.")
@@ -135,7 +151,7 @@ def load_history_adl_data():
         "_end", "", regex=True)
 
     subset_file.to_csv(ADL_CSV_DATASET_LOCATION +
-                        'data-cleaned.csv', index=False)
+                       'data-cleaned.csv', index=False)
 
     ongoing_activities = {}
     activity_tracking = {}
@@ -184,6 +200,42 @@ def load_history_adl_data():
 
     # Reverse sort activities
     sorted_activities = {key: dict(sorted(value.items(), reverse=True, key=lambda element: element[1]))
-                            for key, value in activity_tracking.items()}
+                         for key, value in activity_tracking.items()}
 
     categorize_activity_level(activities=sorted_activities)
+
+
+def activity_object(row):
+    return Activity(**row)
+
+
+def import_activity_csv_data(csv_file):
+    print("Importing activity data.")
+    # Connect to the activity db
+    engine = create_engine(
+        "sqlite:///" + os.path.join(BASE_DIRECTORY, 'activity.db'), echo=True)
+    Base = declarative_base()
+    Base.metadata.create_all(engine)
+    Session = sessionmaker(bind=engine)
+
+    session = Session()
+    print('Checking for any previous records:')
+    existing_data = session.query(Activity).first()
+    if existing_data is None:
+        import_data = True
+    else:
+        import_data = False
+
+    print(f'Import data?: {import_data}')
+
+    if (import_data):
+        with open(csv_file, encoding='utf-8', newline='') as file:
+            # open and read csv
+            csvreader = csv.DictReader(file, quotechar='"')
+
+            # Create food object for every row in the csv
+            activities = [activity_object(row) for row in csvreader]
+
+            # Write to the food database, under food table
+            session.add_all(activities)
+            session.commit()

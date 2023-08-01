@@ -19,8 +19,9 @@ class User(db.Model):
     weight = db.Column(db.Integer())
     illness = db.Column(db.String())
     activity_level = db.Column(db.String())
+    schedule = db.Column(db.JSON())
 
-    def __init__(self, username, email, password, firstname, lastname, age, gender, height, weight, illness, activity_level):
+    def __init__(self, username, email, password, firstname, lastname, age, gender, height, weight, illness, activity_level, schedule):
         self.username = username
         self.email = email
         self.password = password
@@ -32,6 +33,7 @@ class User(db.Model):
         self.weight = weight
         self.illness = illness
         self.activity_level = activity_level
+        self.schedule = schedule
 
     def __repr__(self):
         return f"User {self.username}: Age: {self.age}"
@@ -53,6 +55,11 @@ class User(db.Model):
     def update_activity(id, activity_level):
         db_user = User.query.filter_by(id=id).first()
         db_user.activity_level = activity_level
+        db.session.commit()
+    
+    def update_schedule(id, schedule):
+        db_user = User.query.filter_by(id=id).first()
+        db_user.schedule = schedule
         db.session.commit()
 
     def save(self):
@@ -188,3 +195,35 @@ class Water(db.Model):
     def save(self):
         db.session.add(self)
         db.session.commit()
+
+
+class Activity(db.Model):
+    __tablename__ = 'activity'
+    __bind_key__ = 'activity'
+
+    id = db.Column(db.Integer(), primary_key=True, autoincrement=True)
+    name = db.Column(db.String(), nullable=False)
+    type = db.Column(db.String())
+    directions = db.Column(db.String())
+    repetitions = db.Column(db.String())
+    image = db.Column(db.String())
+
+    def __init__(self, name, type, directions, repetitions, image):
+        self.name = name
+        self.type = type
+        self.directions = directions
+        self.repetitions = repetitions
+        self.image = image
+
+    def __repr__(self):
+        return f"Exercise: {self.name}, type: {self.type}"
+
+    def as_dictionary(self):
+        return {column.name: getattr(self, column.name) for column in self.__table__.columns}
+
+    @classmethod
+    def fetch_by_id(self, id):
+        return Food.query.filter_by(id=id).first()
+
+    def fetch_all_activities():
+        return [each_activity.as_dictionary() for each_activity in Activity.query.all()]

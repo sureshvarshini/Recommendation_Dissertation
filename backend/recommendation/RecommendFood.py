@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 from sklearn.cluster import KMeans
 from sklearn.preprocessing import LabelEncoder, StandardScaler
-from pulp import LpVariable, LpProblem, LpMaximize, lpSum, LpStatus
+from pulp import LpVariable, LpProblem, LpMinimize, lpSum, LpStatus
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import linear_kernel
 
@@ -145,7 +145,7 @@ def choose_foods(macro_nutrients_ratio, foods):
         all_folate = dict(zip(all_food_ids, day_menu['folate']))
 
         # Define objective sense - minimize fat intake
-        problem = LpProblem(name='fats', sense=LpMaximize)
+        problem = LpProblem(name='fats', sense=LpMinimize)
 
         # Declare variables for each menu item
         equation_variables = LpVariable.dicts(

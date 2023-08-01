@@ -6,13 +6,13 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from models.Model import db
 from api.TestApiHandler import TestApiHandler
 from api.UserApiHandler import UserResource, SignupUserResource, LoginUserResource, RefreshResource
-from api.RecommendationApiHandler import FoodRecommendationResource, AddRatingResource, ViewRatingResource, ActivityRecommendationResource, WaterRecommendationResource
+from api.RecommendationApiHandler import FoodRecommendationResource, AddRatingResource, ViewRatingResource, ScheduleRecommendationResource, WaterRecommendationResource, ActivityRecommendationResource
 from api.ModelApiHandler import ModelTrainingResource
 from config import Config
 from preprocessing.DataPreprocessing import clean_food_csv, clean_rating_csv
 from ImportFood import import_food_csv_data
 from ImportRatings import import_rating_csv_data
-from ImportActivity import load_history_adl_data
+from ImportActivity import load_history_adl_data, import_activity_csv_data
 from ImportWater import reset_water
 from caching import cache
 
@@ -36,6 +36,10 @@ JWTManager(app)
 # print('Importing rating csv to SQL database:\n')
 # csv_file = 'D:\\Varshini\\CourseWork\\Dissertation\\Implementation\\Github\\Recommendation_Dissertation\\backend\\preprocessing\\cleanedDatasets\\ratings_cleaned.csv'
 # import_rating_csv_data(csv_file)
+
+# print('Importing activity csv to SQL database:\n')
+# csv_file = 'D:\\Varshini\\CourseWork\\Dissertation\\Implementation\\Github\\Recommendation_Dissertation\\backend\\preprocessing\\cleanedDatasets\\Activities\\activity_cleaned.csv'
+# import_activity_csv_data(csv_file)
 # <----- Till here ----->
 
 # Train model from history data - at the beginning of the application
@@ -61,6 +65,7 @@ api.add_resource(RefreshResource, '/user/token/refresh')
 api.add_resource(FoodRecommendationResource, '/recommend/<int:id>/foods')
 api.add_resource(AddRatingResource, '/ratings')
 api.add_resource(ViewRatingResource, '/ratings/<int:id>/<int:food_id>')
+api.add_resource(ScheduleRecommendationResource, '/schedule/<int:id>')
 api.add_resource(ActivityRecommendationResource, '/activity/<int:id>')
 api.add_resource(WaterRecommendationResource, '/water/<int:id>')
 api.add_resource(ModelTrainingResource, '/model')

@@ -27,7 +27,7 @@ class FoodRecommendationResource(Resource):
         food_choices = choose_foods(
             macro_nutrients_ratio=macro_nutrients_ratio, foods=all_foods)
 
-        temp_id= []
+        temp_id = []
         recommended_meal_choices = {}
         similar_meal_choices = {}
         for meal_type, meal_options in food_choices.items():
@@ -86,7 +86,8 @@ class FoodRecommendationResource(Resource):
             }
             rated_food_choices.append(rated_food_object)
 
-        hybrid_recommendation_ids = get_hybrid_recommendation(similar_users_recommendation_food_ids=rated_food_ids, foods=all_foods, chosen_food_id=temp_id)
+        hybrid_recommendation_ids = get_hybrid_recommendation(
+            similar_users_recommendation_food_ids=rated_food_ids, foods=all_foods, chosen_food_id=temp_id)
 
         hybrid_food_choices = []
         for id in hybrid_recommendation_ids:
@@ -101,7 +102,6 @@ class FoodRecommendationResource(Resource):
                 "Image": food.image
             }
             hybrid_food_choices.append(food_object)
-
 
         return make_response(jsonify({
             "recommended_foods": recommended_meal_choices,
@@ -155,9 +155,37 @@ class ViewRatingResource(Resource):
         }), 200)
 
 
+class ScheduleRecommendationResource(Resource):
+    def get(self, id):
+        default_user_schedule = {
+            'Morning': 7,
+            'Morning activities 1': 8,
+            'Morning snack': 10,
+            'Morning activities 2': 11,
+            'Lunch': 13,
+            'Afternoon activities': 14,
+            'Afternoon Snack': 16,
+            'Evening activities': 17,
+            'Dinner': 19
+        }
+
+        # Check if user exists
+        db_user = User.fetch_by_id(id=id)
+        if db_user is not None:
+            # Fetch schedule for user
+            schedule = db_user.schedule
+            if schedule is None:  # Return default schedule
+                schedule = default_user_schedule
+
+        return make_response(jsonify({
+            "user_id": id,
+            "schdule": schedule
+        }), 200)
+
+
 class ActivityRecommendationResource(Resource):
     def get(self, id):
-        return "Hello there!"
+        return "hi"
 
 
 class WaterRecommendationResource(Resource):

@@ -39,9 +39,9 @@ def import_rating_csv_data(csv_file):
     print(f'Import data?: {import_data}')
 
     if (import_data):
-        with open(csv_file, encoding='utf-8', newline='') as nutrition_file:
+        with open(csv_file, encoding='utf-8', newline='') as file:
             # open and read csv
-            csvreader = csv.DictReader(nutrition_file, quotechar='"')
+            csvreader = csv.DictReader(file, quotechar='"')
 
             # Create rating object for every row in the csv
             foods = [rating_object(row) for row in csvreader]
