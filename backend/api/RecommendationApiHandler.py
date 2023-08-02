@@ -158,7 +158,7 @@ class ViewRatingResource(Resource):
 class ScheduleRecommendationResource(Resource):
     def get(self, id):
         default_user_schedule = {
-            'Morning Breakfast': 7,
+            'Breakfast': 7,
             'Morning Activity 1': 8,
             'Morning Snacks': 10,
             'Morning Activity 2': 11,

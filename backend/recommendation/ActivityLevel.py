@@ -210,18 +210,18 @@ def analyse_meal_times(csv_file_location):
 
     # Convert the dictionary to a DataFrame for easier visualization
     recommendations_df = pd.DataFrame(meal_times_recommendations)
-    recommendations_df.index = ['Morning', 'Morning activities 1', 'Morning snack', 'Morning activities 2',
-                                'Lunch', 'Afternoon activities', 'Afternoon Snack', 'Evening activities', 'Dinner']
+    recommendations_df.index = ['Breakfast', 'Morning Activity 1', 'Morning Snacks', 'Morning Activity 2',
+                                'Lunch', 'Afternoon Activity', 'Afternoon Snacks', 'Evening Activity', 'Dinner']
 
     user_schedule = {
-        'Morning': 7,
-        'Morning activities 1': 8,
-        'Morning snack': 10,
-        'Morning activities 2': 11,
+        'Breakfast': 7,
+        'Morning Activity 1': 8,
+        'Morning Snacks': 10,
+        'Morning Activity 2': 11,
         'Lunch': 13,
-        'Afternoon activities': 14,
-        'Afternoon Snack': 16,
-        'Evening activities': 17,
+        'Afternoon Activity': 14,
+        'Afternoon Snacks': 16,
+        'Evening Activity': 17,
         'Dinner': 19
     }
 
