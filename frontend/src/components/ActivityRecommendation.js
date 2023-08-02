@@ -197,12 +197,12 @@ const ActivityRecommendationPage = () => {
                             <h2 style={{ marginTop: '30px', backgroundColor: '#cafaac', borderRadius: '10px', padding: 10, fontWeight: 'bold' }}>
                                 {time > 12 ? `${time - 12} PM` : `${time} AM`} {activity}
                             </h2>
-                            {(activity === 'Morning' || activity === 'Morning snack' || activity === 'Lunch' || activity === 'Afternoon Snack' || activity === "Dinner") &&
+                            {(activity === 'Breakfast' || activity === 'Morning Snacks' || activity === 'Lunch' || activity === 'Afternoon Snacks' || activity === "Dinner") &&
                                 <div className='sub-activity'>
                                     <h3 style={{ marginTop: '30px', padding: 10 }}>Lead me to today's suggested dishes! Click <Link to='/recommendations/food' style={{ fontWeight: 'bold' }}>here</Link></h3>
                                 </div>
                             }
-                            {activity === 'Morning activities 1' &&
+                            {activity === 'Morning Activity 1' &&
                                 <div className='sub-activity'>
                                     {Object.keys(morning1Activity).map((type) => (
                                         <div key={type}>
@@ -224,7 +224,7 @@ const ActivityRecommendationPage = () => {
                                     }
                                 </div>
                             }
-                            {activity === 'Morning activities 2' &&
+                            {activity === 'Morning Activity 2' &&
                                 <div className='sub-activity'>
                                     {Object.keys(morning2Activity).map((type) => (
                                         <div key={type}>
@@ -246,7 +246,7 @@ const ActivityRecommendationPage = () => {
                                     }
                                 </div>
                             }
-                            {activity === 'Afternoon activities' &&
+                            {activity === 'Afternoon Activity' &&
                                 <div className='sub-activity'>
                                     <Slider {...settings_one}>
                                         {Object.entries(afternoonActivity).map(([index, activity]) => (
@@ -261,7 +261,7 @@ const ActivityRecommendationPage = () => {
                                     </Slider>
                                 </div>
                             }
-                            {activity === 'Evening activities' &&
+                            {activity === 'Evening Activity' &&
                                 <div className='sub-activity'>
                                     <Slider {...settings}>
                                         {Object.entries(eveningActivity).map(([index, activity]) => (
