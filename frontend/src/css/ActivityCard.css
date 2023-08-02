@@ -1,0 +1,74 @@
+.activity-card {
+    background-color: #d0ffd8;
+    color: #05052D;
+    padding: 20px;
+    border-radius: 20px;
+    border: 0px;
+    border-color: rgb(255, 71, 71);
+    border-style: solid;
+    transition: 100ms;
+    max-width: 600px;
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.activity-card:hover {
+    transition: 200ms;
+    border: 4px;
+    border-color: #001277;
+    border-style: solid;
+}
+
+.activity-card-header {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+}
+
+.activity-card-title-group {
+    text-align: center;
+    font-family: sans-serif;
+}
+
+.activity-card-title {
+    flex: 0.5;
+    font-size: 30px;
+    margin-bottom: 0;
+    margin-top: 0;
+    font-weight: bold;
+}
+
+.activity-card-image {
+    width: 490px;
+    height: 350px;
+    border-radius: 10px;
+    margin-left: 10px;
+    margin-bottom: 10px;
+    margin-top: 10px;
+    object-fit: cover;
+    object-position: cover;
+}
+
+.activity-card-text {
+    font-family: sans-serif;
+    width: 350px;
+    font-size: large;
+}
+
+.slick-prev {
+    left: -52px !important;
+}
+
+.slick-next:before,
+.slick-prev:before {
+    content: "" !important;
+}
+
+.next-slick-arrow,
+.prev-slick-arrow {
+    color: #000000;
+    font-size: 45px;
+}

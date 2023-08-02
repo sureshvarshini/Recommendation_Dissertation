@@ -15,16 +15,12 @@ import LoginPage from './components/Login'
 import MyAccountPage from './components/MyAccount'
 import GoodbyePage from './components/Goodbye'
 import RecipeRecommendationPage from './components/RecipeRecommendation'
-import WaterTrackerPage from './components/WaterTracker';
+import WaterTrackerPage from './components/WaterTracker'
+import ActivityRecommendationPage from './components/ActivityRecommendation'
 
 function App() {
 
   const [showReminder, setShowReminder] = useState(false);
-
-  const showWaterReminderModal = () => {
-    console.log('Water reminder pop-up Model.')
-    setShowReminder(true)
-  }
 
   const closeReminder = () => {
     setShowReminder(false);
@@ -44,6 +40,7 @@ function App() {
         <div className='app'>
           <Navbar />
           <Routes>
+            <Route path='/recommendations/activity' element={<ActivityRecommendationPage />} />
             <Route path='/recommendations/food' element={<RecipeRecommendationPage />} />
             <Route path='/recommendations/water' element={<WaterTrackerPage />} />
             <Route path='/enduser' element={<GoodbyePage />} />

@@ -6,6 +6,7 @@ import homeImage from "../assets/elderly_home.jpg"
 import foodBackground from "../assets/food_background.jpg"
 import foodRecommendation from "../assets/food_recommendation.jpg"
 import waterRecommendation from "../assets/water_recommendation.jpg"
+import activity from "../assets/elderly_activity.jpg"
 import home_1 from "../assets/home_1.jpg"
 import home_2 from "../assets/home_2.jpg"
 import home_3 from "../assets/home_3.jpg"
@@ -70,21 +71,31 @@ const LoggedInHomePage = () => {
                 <div class="mask" style={{ backgroundColor: 'rgba(0, 0, 0, 0.7', height: '800px' }}>
                     <div class="d-flex justify-content-center h-50">
                         <div class="text-white">
-                            <h1 class="mb-3" style={{ fontWeight: 'bold', marginTop: '100px' }}>Hi, {name}!</h1>
+                            <h1 class="mb-3" style={{ fontWeight: 'bold', marginTop: '70px' }}>Hi, {name}!</h1>
                             <h1 class="mb-3" style={{ fontWeight: 'bold' }}>Welcome back to AssistWise</h1>
-                            <a href='/recommendations/food'>
-                                <img style={{ width: 300, height: 400, borderRadius: 20, marginRight: 50 }} src={foodRecommendation} class="card-img-top" alt="Banana bread on plate" />
-                            </a>
-                            <a href='/recommendations/water'>
-                                <img style={{ width: 250, height: 400, borderRadius: 20, marginLeft: 50 }} src={waterRecommendation} class="card-img-top" alt="Water" />
-                            </a>
+                            <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
+                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                                    <a href='/recommendations/food'>
+                                        <img style={{ width: 300, height: 400, borderRadius: 20 }} src={foodRecommendation} class="card-img-top" alt="Banana bread on plate" />
+                                    </a>
+                                    <Link style={{ borderRadius: 20, fontWeight: 'bold' }} to='/recommendations/food' className="btn btn-outline-light btn-lg m-4">RECIPE RECOMMENDATIONS</Link>
+                                </div>
+                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                                    <a href='/recommendations/water'>
+                                        <img style={{ width: 250, height: 400, borderRadius: 20 }} src={waterRecommendation} class="card-img-top" alt="Water" />
+                                    </a>
+                                    <Link style={{ borderRadius: 20, fontWeight: 'bold' }} to='/recommendations/water' className="btn btn-outline-light btn-lg m-4">EVERYDAY HYDRATION</Link>
+                                </div>
+                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                                    <a href='/recommendations/activity'>
+                                        <img style={{ width: 450, height: 400, borderRadius: 20, marginLeft: 30 }} src={activity} class="card-img-top" alt="Water" />
+                                    </a>
+                                    <Link style={{ borderRadius: 20, fontWeight: 'bold' }} to='/recommendations/activity' className="btn btn-outline-light btn-lg m-4">LEISURE ACTIVITIES</Link>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                    <div class="d-flex justify-content-center" style={{ margin: 100, marginTop: '220px', marginRight: '70px' }}>
-                        <Link style={{ borderRadius: 20, fontWeight: 'bold' }} to='/recommendations/food' className="btn btn-outline-light btn-lg m-4">FOOD RECOMMENDATIONS</Link>
-                        <Link style={{ borderRadius: 20, fontWeight: 'bold' }} to='/recommendations/water' className="btn btn-outline-light btn-lg m-4">WATER RECOMMENDATIONS</Link>
-                    </div>
 
+                    </div>
                 </div>
             </div>
         </>
