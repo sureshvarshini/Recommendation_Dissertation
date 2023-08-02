@@ -1,7 +1,7 @@
 from flask_restful import Resource
 from flask import request, jsonify, make_response
 from datetime import datetime
-from models.Model import Food, Rating, User, Water
+from models.Model import Food, Rating, User, Water, Activity
 from recommendation.RecommendFood import daily_calorie_intake, extract_macro_nutrients, choose_foods, get_similar_foods_recommendation, get_similar_users_recommendations, get_hybrid_recommendation
 from caching import cache
 
@@ -158,14 +158,14 @@ class ViewRatingResource(Resource):
 class ScheduleRecommendationResource(Resource):
     def get(self, id):
         default_user_schedule = {
-            'Morning': 7,
-            'Morning activities 1': 8,
-            'Morning snack': 10,
-            'Morning activities 2': 11,
+            'Morning Breakfast': 7,
+            'Morning Activity 1': 8,
+            'Morning Snacks': 10,
+            'Morning Activity 2': 11,
             'Lunch': 13,
-            'Afternoon activities': 14,
-            'Afternoon Snack': 16,
-            'Evening activities': 17,
+            'Afternoon Activity': 14,
+            'Afternoon Snacks': 16,
+            'Evening Activity': 17,
             'Dinner': 19
         }
 
@@ -179,13 +179,41 @@ class ScheduleRecommendationResource(Resource):
 
         return make_response(jsonify({
             "user_id": id,
-            "schdule": schedule
+            "schedule": schedule
         }), 200)
 
 
 class ActivityRecommendationResource(Resource):
     def get(self, id):
-        return "hi"
+        activities = {
+            'Morning_1': {'Walking': [], 'Exercise': []},
+            'Morning_2': {'Hobbies': []},
+            'Afternoon': ['Reading'],
+            'Evening': ['Gardening', 'Yoga']
+        }
+        hobbies = []
+        walking = []
+        exercises = []
+        all_activities = Activity.fetch_all_activities()
+        for activity in all_activities:
+            print(activity)
+            if activity['type'] == 'Hobbies':
+                hobbies.append(activity)
+
+            elif activity['type'] == 'Walking':
+                walking.append(activity)
+
+            elif 'exercise' in activity['type']:
+                exercises.append(activity)
+
+        activities['Morning_1']['Walking'] = walking
+        activities['Morning_1']['Exercise'] = exercises
+        activities['Morning_2']['Hobbies'] = hobbies
+
+        return make_response(jsonify({
+            "user_id": id,
+            "activities": activities
+        }), 200)
 
 
 class WaterRecommendationResource(Resource):
