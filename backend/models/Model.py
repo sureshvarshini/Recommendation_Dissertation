@@ -21,7 +21,7 @@ class User(db.Model):
     activity_level = db.Column(db.String())
     schedule = db.Column(db.JSON())
 
-    def __init__(self, username, email, password, firstname, lastname, age, gender, height, weight, illness, activity_level, schedule):
+    def __init__(self, username, email, password, firstname, lastname, age, gender, height, weight, illness):
         self.username = username
         self.email = email
         self.password = password
@@ -32,8 +32,6 @@ class User(db.Model):
         self.height = height
         self.weight = weight
         self.illness = illness
-        self.activity_level = activity_level
-        self.schedule = schedule
 
     def __repr__(self):
         return f"User {self.username}: Age: {self.age}"

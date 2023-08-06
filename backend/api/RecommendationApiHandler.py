@@ -1,9 +1,20 @@
+import pandas as pd
 from flask_restful import Resource
 from flask import request, jsonify, make_response
 from datetime import datetime
 from models.Model import Food, Rating, User, Water, Activity
 from recommendation.RecommendFood import daily_calorie_intake, extract_macro_nutrients, choose_foods, get_similar_foods_recommendation, get_similar_users_recommendations, get_hybrid_recommendation
 from caching import cache
+
+# List of foods to avoid based on illness
+FOODS_AVOID = {'Ulcer': ['alcohol', 'caffeine', 'coffee', 'tea', 'sodas', 'milk', 'sausages', 'fatty meats', 'fry', 'gravy', 'cream soups', 'salad dressing'
+                         'chili peppers', 'chili', 'horseradish', 'pickles', 'olives', 'fermenet', 'brine', 'chocolate', 'tomatoe', 'lemon', 'orange', 'grapefruit', 'spicy'],
+               'Diabetes': ['sugar', 'sweets', 'candy',
+                            'chocolate', 'honey', 'alcohol', 'banana', 'melon', 'mango'],
+               'Cholesterol': ['lamb', 'pork', 'butter', 'cream', 'palm oil', 'donuts', 'cakes',
+                               'cake', 'potato chips', 'fried', 'fries', 'cheese', 'sausages', 'bacon', 'hot dogs', 'cookies'],
+               'Hypertension':  ['soup', 'pizza', 'sandwich', 'burrito', 'tacos', 'pickle', 'full fat milk', 'full fat cream', 'butter', 'alcohol'],
+               'Coronary Heart Disease': ['butter', 'gravy', 'non-dairy creamers', 'fried foods', 'potato chips', 'cookies', 'pies', 'ice cream']}
 
 
 class FoodRecommendationResource(Resource):
@@ -23,9 +34,23 @@ class FoodRecommendationResource(Resource):
         print(macro_nutrients_ratio)
 
         # Pick out foods that fall under calculated calories and macro nutrients
-        all_foods = Food.fetch_all_foods()
+        all_foods = pd.DataFrame(Food.fetch_all_foods())
+
+        # Add a filtering condition here - avoid foods based on illness
+        illness_food_avoid = FOODS_AVOID.get(user.illness)
+        print("Filtering foods based on illness")
+        for index, row in all_foods.iterrows():
+            ingredient = [ingredient.strip()
+                          for ingredient in row['ingredients'].split(' ')]
+            name = [name.strip() for name in row['name'].split(' ')]
+            contains = any(item.lower() in illness_food_avoid for item in ingredient) or any(
+                item.lower() in illness_food_avoid for item in name)
+            if contains:
+                all_foods.drop(index, inplace=True)
+        all_foods.reset_index(inplace=True)
+
         food_choices = choose_foods(
-            macro_nutrients_ratio=macro_nutrients_ratio, foods=all_foods)
+            macro_nutrients_ratio=macro_nutrients_ratio, foods_df=all_foods)
 
         temp_id = []
         recommended_meal_choices = {}
@@ -48,21 +73,21 @@ class FoodRecommendationResource(Resource):
                 }
                 recommended_response.append(db_food_object)
 
-            # Fetch foods similar to 'food_id'
-            similar_food_ids = get_similar_foods_recommendation(
-                food_id=food_id, foods=all_foods)
-            for food_id in similar_food_ids:
-                similar_food = Food.fetch_by_id(id=food_id)
-                similar_food_object = {
-                    "id": similar_food.id,
-                    "Name": similar_food.name,
-                    "Servings": similar_food.servings,
-                    "Ingredients": similar_food.ingredients,
-                    "Directions": similar_food.directions,
-                    "Calories": similar_food.calories,
-                    "Image": similar_food.image
-                }
-                similar_food_response.append(similar_food_object)
+                # Fetch foods similar to 'food_id'
+                similar_food_ids = get_similar_foods_recommendation(
+                    food_id=food_id, foods_df=all_foods)
+                for food_id in similar_food_ids:
+                    similar_food = Food.fetch_by_id(id=food_id)
+                    similar_food_object = {
+                        "id": similar_food.id,
+                        "Name": similar_food.name,
+                        "Servings": similar_food.servings,
+                        "Ingredients": similar_food.ingredients,
+                        "Directions": similar_food.directions,
+                        "Calories": similar_food.calories,
+                        "Image": similar_food.image
+                    }
+                    similar_food_response.append(similar_food_object)
 
             recommended_meal_choices[meal_type] = recommended_response
             similar_meal_choices[meal_type] = similar_food_response
@@ -86,8 +111,11 @@ class FoodRecommendationResource(Resource):
             }
             rated_food_choices.append(rated_food_object)
 
-        hybrid_recommendation_ids = get_hybrid_recommendation(
-            similar_users_recommendation_food_ids=rated_food_ids, foods=all_foods, chosen_food_id=temp_id)
+        if (len(rated_food_choices) != 0):
+            hybrid_recommendation_ids = get_hybrid_recommendation(
+                similar_users_recommendation_food_ids=rated_food_ids, foods=all_foods, chosen_food_id=temp_id)
+        else:
+            hybrid_recommendation_ids = similar_food_ids
 
         hybrid_food_choices = []
         for id in hybrid_recommendation_ids:

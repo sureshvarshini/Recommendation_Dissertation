@@ -42,6 +42,7 @@ def extract_macro_nutrients(calories, user):
         fiber = 30  # g
         vitamin_a = 900  # mcg
         vitamin_c = 90  # mg
+        sugar = 36  # g
         if (user.age > 70):
             calcium_lower = 1200  # mg
             vitamin_d_lower = 20  # mcg
@@ -56,6 +57,7 @@ def extract_macro_nutrients(calories, user):
         vitamin_c = 75  # mg
         calcium_lower = 1200  # mg
         calcium_upper = 2000  # mg
+        sugar = 25  # g
 
         if (user.age > 70):
             vitamin_d_lower = 20  # mcg
@@ -95,16 +97,15 @@ def extract_macro_nutrients(calories, user):
             'vitamin_d_upper': round(vitamin_d_upper * percentage),
             'calcium_lower': round(calcium_lower * percentage),
             'calcium_upper': round(calcium_upper * percentage),
-            'folate': round(folate * percentage)
+            'folate': round(folate * percentage),
+            'sugar': round(sugar * percentage)
         }
         macro_nutrients[meal] = nutrient_split
 
     return macro_nutrients
 
 
-def choose_foods(macro_nutrients_ratio, foods):
-    foods_df = pd.DataFrame(foods)
-
+def choose_foods(macro_nutrients_ratio, foods_df):
     # Choose random foods seperated by meal type
     final_food_choices = []
     weekly_menu = prepare_weekly_menu(foods=foods_df)
@@ -143,6 +144,7 @@ def choose_foods(macro_nutrients_ratio, foods):
         all_vitamin_d = dict(zip(all_food_ids, day_menu['vitamin_d']))
         all_calcium = dict(zip(all_food_ids, day_menu['calcium']))
         all_folate = dict(zip(all_food_ids, day_menu['folate']))
+        all_sugars = dict(zip(all_food_ids, day_menu['sugars']))
 
         # Define objective sense - minimize fat intake
         problem = LpProblem(name='fats', sense=LpMinimize)
@@ -205,6 +207,10 @@ def choose_foods(macro_nutrients_ratio, foods):
         problem += lpSum([all_folate[f] * equation_variables[f]
                           for f in all_food_ids]) <= macro_nutrients_ratio[meal]['folate'], "Folate"
 
+        # Sugar constraints
+        problem += lpSum([all_sugars[f] * equation_variables[f]
+                          for f in all_food_ids]) <= macro_nutrients_ratio[meal]['sugar'], "Sugar"
+
         # Solve the equation
         status = problem.solve()
         print("Problem Status:", LpStatus[status])  # expected - Optimal
@@ -232,23 +238,25 @@ def get_similar_users_recommendations(user_id, ratings, users):
     ratings_df = pd.DataFrame(ratings)
 
     # Choosing similar users by features: age, weight, illness
-    users_df = users_df[['age', 'weight', 'illness']]
+    users_df_copy = users_df[['age', 'weight', 'illness']]
     # Label encoding the features
     encoder = LabelEncoder()
-    users_df['age'] = encoder.fit_transform(users_df['age'])
-    users_df['weight'] = encoder.fit_transform(users_df['weight'])
-    users_df['illness'] = encoder.fit_transform(users_df['illness'])
-    data_scalar = StandardScaler().fit_transform(users_df)
+    # users_df_copy['age'] = encoder.fit_transform(users_df_copy['age'])
+    # users_df_copy['weight'] = encoder.fit_transform(users_df_copy['weight'])
+    users_df_copy['illness'] = encoder.fit_transform(users_df_copy['illness'])
+    data_scalar = StandardScaler().fit_transform(users_df_copy)
 
     # KMeans clustering
     kmeans = KMeans(n_clusters=N_CLUSTERS, random_state=24)
     cluster_labels = kmeans.fit_predict(data_scalar)
-    users_df['cluster'] = cluster_labels
+    users_df_copy['cluster'] = cluster_labels
 
-    user_cluster = users_df.loc[user_id, 'cluster']
-    similar_users = (users_df[users_df['cluster'] ==
-                     user_cluster]).nlargest(3, 'illness')
-    similar_users = similar_users[similar_users.index != user_id]
+    user_cluster = users_df_copy.loc[users_df['id']
+                                     == user_id, 'cluster'].iloc[0]
+    similar_users = (users_df_copy[users_df_copy['cluster'] ==
+                     user_cluster]).nlargest(10, 'illness')
+    similar_users = similar_users[similar_users.index !=
+                                  users_df.index[users_df['id'] == user_id].tolist()[0]]
 
     rated_food_ids = []
     for similar_user_id in similar_users.index:
@@ -260,8 +268,7 @@ def get_similar_users_recommendations(user_id, ratings, users):
     return rated_food_ids
 
 
-def get_similar_foods_recommendation(food_id, foods):
-    foods_df = pd.DataFrame(foods)
+def get_similar_foods_recommendation(food_id, foods_df):
     tfidf = TfidfVectorizer(stop_words='english')
     tfidf_matrix = tfidf.fit_transform(foods_df['type'])
     cosine_sim = linear_kernel(tfidf_matrix, tfidf_matrix)
