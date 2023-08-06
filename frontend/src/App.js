@@ -17,6 +17,7 @@ import GoodbyePage from './components/Goodbye'
 import RecipeRecommendationPage from './components/RecipeRecommendation'
 import WaterTrackerPage from './components/WaterTracker'
 import ActivityRecommendationPage from './components/ActivityRecommendation'
+import glassWater from "./assets/glass_water.jpg"
 
 function App() {
 
@@ -58,7 +59,12 @@ function App() {
               </Modal.Title>
             </Modal.Header>
             <Modal.Body style={{ fontSize: '20px' }}>
-              <p>Log water <Link to='/recommendations/water'>here</Link></p>
+              <div className="d-flex justify-content-center">
+                <img className='glass-water' src={glassWater} alt='glass-water' style={{ width: "400px", height: "auto" }} />
+              </div>
+              <div className="d-flex justify-content-center">
+                <p style={{ fontSize: "30px" }}>Log water <Link to='/recommendations/water' style={{ fontWeight: 'bold' }}>here</Link></p>
+              </div>
             </Modal.Body>
           </Modal>}
       </Router>

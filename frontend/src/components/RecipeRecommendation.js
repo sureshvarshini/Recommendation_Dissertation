@@ -171,7 +171,7 @@ const RecipeRecommendationPage = () => {
                 <div className='recommended recipes'>
                     {Object.keys(recommendedFoodProfiles).map((mealType) => (
                         <div key={mealType}>
-                            <h2 style={{ display: 'flex', justifyContent: 'center', color: 'white', marginTop: '30px', backgroundColor: '#FF0078', borderRadius: '10px', padding: 10, fontWeight: 'bold' }}>{mealType}</h2>
+                            <h2 style={{ display: 'flex', justifyContent: 'center', marginTop: '30px', backgroundColor: '#f5d2fa', borderRadius: '10px', padding: 10, fontWeight: 'bold' }}>{mealType}</h2>
                             <Slider {...settings}>
                                 {recommendedFoodProfiles[mealType].map((recipe) => (
                                     <div key={recipe.id}>
