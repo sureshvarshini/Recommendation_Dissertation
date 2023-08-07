@@ -1,13 +1,17 @@
 import React, { useState } from 'react'
 import { Form, Button, Alert } from 'react-bootstrap'
+import RangeSlider from 'react-bootstrap-range-slider'
 import { Link } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import axios from 'axios'
+import 'bootstrap/dist/css/bootstrap.css'
+import 'react-bootstrap-range-slider/dist/react-bootstrap-range-slider.css'
 import signupImage from "../assets/signup.jpg"
 
 const SignupPage = () => {
     const [gender, setGender] = useState('')
     const [illness, setIllness] = useState('')
+    const [mobilityscore, setmobilityscore] = useState(1)
     const [responseData, setResponseData] = useState('')
     const [variant, setVariant] = useState('')
     const [show, setShow] = useState(false)
@@ -18,7 +22,8 @@ const SignupPage = () => {
         console.log("Sign-Up form submitted with below details.")
         const formData = {
             gender: gender,
-            illness: illness
+            illness: illness,
+            mobilityscore: mobilityscore
         }
         console.log({ ...data, ...formData })
 
@@ -181,8 +186,21 @@ const SignupPage = () => {
                                                 <option value={"Diabetes"}>Diabetes</option>
                                                 <option value={"Coronary Heart Disease"}>Coronary Heart Disease</option>
                                                 <option value={"Arthritis"}>Arthritis</option>
+                                                <option value={"Ulcer"}>Ulcer</option>
                                                 <option value={"No"}>No</option>
                                             </Form.Control>
+                                        </Form.Group>
+                                        <br></br>
+                                        <Form.Group>
+                                            <Form.Label style={{ fontSize: "20px" }}>Mobility Score</Form.Label>
+                                            <br></br>
+                                            <RangeSlider
+                                                variant='primary'
+                                                value={mobilityscore}
+                                                onChange={(event) => { setmobilityscore(event.target.value) }}
+                                                tooltip='on'
+                                                min={1}
+                                                max={20} />
                                         </Form.Group>
                                         <br></br>
                                         {show ?
