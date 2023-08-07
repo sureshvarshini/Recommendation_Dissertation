@@ -53,6 +53,8 @@ class Activity(Base):
     directions = Column(String())
     repetitions = Column(String())
     image = Column(String())
+    mobilityscore = Column(Integer())
+    dexterityscore = Column(Integer())
 
 
 def update_user_activity_level(id, activity_level):

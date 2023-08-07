@@ -207,6 +207,8 @@ class Activity(db.Model):
     directions = db.Column(db.String())
     repetitions = db.Column(db.String())
     image = db.Column(db.String())
+    mobilityscore = db.Column(db.Integer())
+    dexterityscore = db.Column(db.Integer())
 
     def __init__(self, name, type, directions, repetitions, image):
         self.name = name

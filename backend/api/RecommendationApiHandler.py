@@ -8,7 +8,7 @@ from caching import cache
 
 # List of foods to avoid based on illness
 FOODS_AVOID = {
-    'Ulcer': ['alcohol', 'caffeine', 'coffee', 'tea', 'sodas', 'milk', 'sausages', 'fatty meats', 'fry', 'gravy', 'cream soups', 'salad dressing', 'chili peppers', 
+    'Ulcer': ['alcohol', 'caffeine', 'coffee', 'tea', 'sodas', 'milk', 'sausages', 'fatty meats', 'fry', 'gravy', 'cream soups', 'salad dressing', 'chili peppers',
               'chili', 'horseradish', 'pickles', 'olives', 'fermenet', 'brine', 'chocolate', 'tomatoe', 'lemon', 'orange', 'grapefruit', 'spicy'],
     'Diabetes': ['sugar', 'sweets', 'candy', 'chocolate', 'honey', 'alcohol', 'banana', 'melon', 'mango'],
     'Cholesterol': ['lamb', 'pork', 'butter', 'cream', 'palm oil', 'donuts', 'cakes', 'cake', 'potato chips', 'fried', 'fries', 'cheese', 'sausages', 'bacon', 'hot dogs', 'cookies'],
@@ -43,7 +43,7 @@ class FoodRecommendationResource(Resource):
             illness_food_avoid = FOODS_AVOID.get(user.illness)
             for index, row in all_foods.iterrows():
                 ingredient = [ingredient.strip()
-                            for ingredient in row['ingredients'].split(' ')]
+                              for ingredient in row['ingredients'].split(' ')]
                 name = [name.strip() for name in row['name'].split(' ')]
                 contains = any(item.lower() in illness_food_avoid for item in ingredient) or any(
                     item.lower() in illness_food_avoid for item in name)
@@ -61,7 +61,6 @@ class FoodRecommendationResource(Resource):
             recommended_response = []
             similar_food_response = []
             for food_id in meal_options:
-                print(food_id)
                 temp_id.append(food_id)
                 db_food = Food.fetch_by_id(id=food_id)
                 db_food_object = {
@@ -98,7 +97,8 @@ class FoodRecommendationResource(Resource):
         # Fetch foods - highest rating by similar users
         ratings = Rating.fetch_all_ratings()
         users = User.fetch_all_users()
-        rated_food_ids = get_similar_users_recommendations(id, ratings, users, all_foods)
+        rated_food_ids = get_similar_users_recommendations(
+            id, ratings, users, all_foods)
 
         rated_food_choices = []
         for id in rated_food_ids:
@@ -217,13 +217,19 @@ class ScheduleRecommendationResource(Resource):
 class ActivityRecommendationResource(Resource):
     def get(self, id):
         activities = {
-            'Morning_1': {'Walking': [], 'Exercise': []},
+            'Morning_1': {'Outdoor': [], 'Exercise': []},
             'Morning_2': {'Hobbies': []},
-            'Afternoon': ['Reading'],
-            'Evening': ['Gardening', 'Yoga']
+            'Afternoon': {'Reading': [], 'Music': []},
+            'Evening': {'Gardening': [], 'Yoga': [], 'Chair Yoga':[], 'TV': []}
         }
         hobbies = []
-        walking = []
+        outdoor = []
+        tv = []
+        music = []
+        reading = []
+        gardening = []
+        yoga = []
+        chairYoga = []
         exercises = []
         all_activities = Activity.fetch_all_activities()
         for activity in all_activities:
@@ -232,14 +238,41 @@ class ActivityRecommendationResource(Resource):
                 hobbies.append(activity)
 
             elif activity['type'] == 'Walking':
-                walking.append(activity)
+                outdoor.append(activity)
+
+            elif activity['type'] == 'Jogging':
+                outdoor.append(activity)
+            
+            elif activity['type'] == 'TV':
+                tv.append(activity)
+
+            elif activity['type'] == 'Music':
+                music.append(activity)
+
+            elif activity['type'] == 'Reading':
+                reading.append(activity)
+
+            elif activity['type'] == 'Gardening':
+                gardening.append(activity)
+
+            elif activity['type'] == 'Yoga':
+                yoga.append(activity)
+
+            elif activity['type'] == 'Chair Yoga':
+                chairYoga.append(activity)
 
             elif 'exercise' in activity['type']:
                 exercises.append(activity)
 
-        activities['Morning_1']['Walking'] = walking
+        activities['Morning_1']['Outdoor'] = outdoor
         activities['Morning_1']['Exercise'] = exercises
         activities['Morning_2']['Hobbies'] = hobbies
+        activities['Afternoon']['Reading'] = reading
+        activities['Afternoon']['Music'] = music
+        activities['Evening']['Gardening'] = gardening
+        activities['Evening']['TV'] = tv
+        activities['Evening']['Yoga'] = yoga
+        activities['Evening']['Chair Yoga'] = chairYoga
 
         return make_response(jsonify({
             "user_id": id,
