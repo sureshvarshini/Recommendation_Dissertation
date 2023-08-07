@@ -145,7 +145,7 @@ const ActivityRecommendationPage = () => {
                         {selectedActivity.name}
                     </Modal.Title>
                 </Modal.Header>
-                {selectedActivity && selectedActivity.type && selectedActivity.type.includes('exercise') &&
+                {selectedActivity && selectedActivity.type && (selectedActivity.type.includes('exercise') || selectedActivity.type.includes('Yoga')) &&
                     <img className='activity-card-image' src={selectedActivity.image} alt={selectedActivity.name} style={{ width: "auto", height: "auto" }} />}
                 <Modal.Body style={{ fontSize: '20px' }}>
                     <p style={{ fontWeight: 'bold' }}>Directions:</p>
@@ -248,33 +248,61 @@ const ActivityRecommendationPage = () => {
                             }
                             {activity === 'Afternoon Activity' &&
                                 <div className='sub-activity'>
-                                    <Slider {...settings_one}>
-                                        {Object.entries(afternoonActivity).map(([index, activity]) => (
-                                            <div key={index}>
-                                                <ActivityCard
-                                                    Name={activity}
-                                                    Type={activity}
-                                                    Image={activity}
-                                                />
-                                            </div>
-                                        ))}
-                                    </Slider>
+                                    {Object.keys(afternoonActivity).map((type) => (
+                                        <div key={type}>
+                                            <h3 style={{ marginTop: '30px', padding: 10, fontWeight: 'bold' }}>{type}</h3>
+                                            <Slider {...settings_one}>
+                                                {afternoonActivity[type].map((activity) => (
+                                                    <div key={activity.id}>
+                                                        <ActivityCard
+                                                            Name={activity.name}
+                                                            Type={activity.type}
+                                                            Image={activity.image}
+                                                            onClick={() => { showModal(activity) }}
+                                                        />
+                                                    </div>
+                                                ))}
+                                            </Slider>
+                                        </div>
+                                    ))}
                                 </div>
                             }
                             {activity === 'Evening Activity' &&
                                 <div className='sub-activity'>
-                                    <Slider {...settings}>
-                                        {Object.entries(eveningActivity).map(([index, activity]) => (
-                                            <div key={index}>
-                                                <ActivityCard
-                                                    Name={activity}
-                                                    Type={activity}
-                                                    Image={activity}
-                                                />
-                                            </div>
-                                        ))}
-                                    </Slider>
-
+                                    {Object.keys(eveningActivity).map((type) => (
+                                        <div key={type}>
+                                            {type.includes('Yoga') ?
+                                                (<h3 style={{ marginTop: '30px', padding: 10, fontWeight: 'bold' }}>{type} - Kindly adhere to the sequence of cards for a complete yoga session.</h3>) :
+                                                (<h3 style={{ marginTop: '30px', padding: 10, fontWeight: 'bold' }}>{type}</h3>)}
+                                            {eveningActivity[type].length == 1 ? (
+                                                <Slider {...settings_one}>
+                                                    {eveningActivity[type].map((activity) => (
+                                                        <div key={activity.id}>
+                                                            <ActivityCard
+                                                                Name={activity.name}
+                                                                Type={activity.type}
+                                                                Image={activity.image}
+                                                                onClick={() => { showModal(activity) }}
+                                                            />
+                                                        </div>
+                                                    ))}
+                                                </Slider>
+                                            ) : (
+                                                <Slider {...settings}>
+                                                    {eveningActivity[type].map((activity) => (
+                                                        <div key={activity.id}>
+                                                            <ActivityCard
+                                                                Name={activity.name}
+                                                                Type={activity.type}
+                                                                Image={activity.image}
+                                                                onClick={() => { showModal(activity) }}
+                                                            />
+                                                        </div>
+                                                    ))}
+                                                </Slider>
+                                            )}
+                                        </div>
+                                    ))}
                                 </div>
                             }
                         </div>

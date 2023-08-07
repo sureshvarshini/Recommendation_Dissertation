@@ -52,21 +52,21 @@ const WaterTrackerPage = () => {
                 <img className='card-image' src={water} alt='water' />
                 <div className='card-header'>
                     <div className='card-title-group'>
-                        {waterIntakeStatus == -1 &&
+                        {waterIntakeStatus === -1 &&
                             <>
                                 <h5 className='card-title'>7 cups left</h5>
                                 <div className='card-text fst-italic'>Start Drinking! ({waterIntakeDetails.remaining_ml}ml remaining)</div>
                                 <small>Goal: 7 cups (1700ml)</small>
                             </>
                         }
-                        {waterIntakeStatus == 0 &&
+                        {waterIntakeStatus === 0 &&
                             <>
                                 <h5 className='card-title'>{waterIntakeDetails.remaining_cups} cups left </h5>
                                 <div className='card-text fst-italic'>Keep Drinking! ({waterIntakeDetails.remaining_ml}ml remaining)</div>
                                 <small>Goal: 7 cups (1700ml)</small>
                             </>
                         }
-                        {waterIntakeStatus == 1 &&
+                        {waterIntakeStatus === 1 &&
                             <>
                                 <h5 className='card-title'>DAILY GOAL reached!</h5>
                                 <div className='card-text fst-italic'>HURRAY, Keep it up!</div>
