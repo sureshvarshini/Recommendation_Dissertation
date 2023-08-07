@@ -3,7 +3,7 @@ import { Card, Modal, Button } from 'react-bootstrap'
 import femaleProfilePicture from "../assets/female_profile_placeholder.jpg"
 import maleProfilePicture from "../assets/male_profile_placeholder.jpg"
 
-const UserProfile = ({ Username, Firstname, Lastname, Email, Gender, Age, Height, Weight, Illness, onClick, onDelete }) => {
+const UserProfile = ({ Username, Firstname, Lastname, Email, Gender, Age, Height, Weight, Illness, MobilityScore, DexterityScore, onClick, onDelete }) => {
     return (
         <section className="vh-100" style={{ backgroundColor: '#f4f5f7' }}>
             <div className="container h-100">
@@ -18,7 +18,7 @@ const UserProfile = ({ Username, Firstname, Lastname, Email, Gender, Age, Height
                                     <h3>{Lastname}</h3>
                                     <p style={{ fontStyle: 'italic' }}>{Username}</p>
                                     <div className="d-flex justify-content-center">
-                                        <Button variant='dark' size="lg" style={{ width: '100%', fontWeight: 'bold'}} onClick={onClick}>Update Account</Button>
+                                        <Button variant='dark' size="lg" style={{ width: '100%', fontWeight: 'bold' }} onClick={onClick}>Update Account</Button>
                                     </div>
                                 </div>
                                 <div className="col-md-7">
@@ -50,6 +50,14 @@ const UserProfile = ({ Username, Firstname, Lastname, Email, Gender, Age, Height
                                                 <h5>Weight (kg)</h5>
                                                 <p className="text-muted" style={{ fontSize: '16px' }}>{Weight}</p>
                                             </div>
+                                            <div className="col-5 mb-3">
+                                                <h5>Mobility Score</h5>
+                                                <p className="text-muted" style={{ fontSize: '16px' }}>{MobilityScore}</p>
+                                            </div>
+                                            <div className="col-4 mb-3">
+                                                <h5>Dexterity Score</h5>
+                                                <p className="text-muted" style={{ fontSize: '16px' }}>{DexterityScore}</p>
+                                            </div>
                                         </div>
                                         <h4>Medical Background</h4>
                                         <hr className="mt-0 mb-4"></hr>
@@ -57,7 +65,6 @@ const UserProfile = ({ Username, Firstname, Lastname, Email, Gender, Age, Height
                                             <div className="col-4 mb-3">
                                                 <p className="text-muted" style={{ fontSize: '19px' }}>{Illness}</p>
                                             </div>
-
                                         </div>
                                     </div>
                                     <div className="d-flex justify-content-end">

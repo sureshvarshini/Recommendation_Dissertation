@@ -2,14 +2,19 @@ import React, { useEffect, useState } from 'react'
 import { Form, Button, Modal } from 'react-bootstrap'
 import { useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
+import RangeSlider from 'react-bootstrap-range-slider'
 import axios from 'axios'
 import { login, logout } from '../Auth'
 import UserProfile from './UserProfile'
+import 'bootstrap/dist/css/bootstrap.css'
+import 'react-bootstrap-range-slider/dist/react-bootstrap-range-slider.css'
 import '../css/MyAccount.css'
 
 const MyAccountPage = () => {
     const [gender, setGender] = useState('')
     const [illness, setIllness] = useState('')
+    const [mobilityscore, setMobilityscore] = useState(1)
+    const [dexterityscore, setDexterityscore] = useState(1)
     const [userProfile, setUserProfile] = useState('')
     const [show, setShow] = useState('')
     const { register, watch, handleSubmit, reset, setValue, formState: { errors } } = useForm()
@@ -59,7 +64,9 @@ const MyAccountPage = () => {
         console.log('Updated user profile details submitted.')
         const formData = {
             gender: gender,
-            illness: illness
+            illness: illness,
+            mobilityscore: mobilityscore,
+            dexterityscore: dexterityscore
         }
         console.log({ ...data, ...formData })
         const headers = {
@@ -199,9 +206,35 @@ const MyAccountPage = () => {
                                 <option value={"Diabetes"}>Diabetes</option>
                                 <option value={"Coronary Heart Disease"}>Coronary Heart Disease</option>
                                 <option value={"Arthritis"}>Arthritis</option>
+                                <option value={"Ulcer"}>Ulcer</option>
                                 <option value={"No"}>No</option>
                             </Form.Control>
                         </Form.Group>
+                        <Form.Group>
+                            <Form.Label style={{ fontSize: "20px" }}>Mobility Score</Form.Label>
+                            <p>(20 - excellent mobility, 1 - requires assistance)</p>
+                            <RangeSlider
+                                variant='primary'
+                                value={mobilityscore}
+                                onChange={(event) => { setMobilityscore(event.target.value) }}
+                                tooltip='on'
+                                min={1}
+                                max={20} />
+                        </Form.Group>
+                        <br></br>
+                        <br></br>
+                        <Form.Group>
+                            <Form.Label style={{ fontSize: "20px" }}>Dexterity Score</Form.Label>
+                            <p>(3 - excellent controlled hand and finger movements, 1 - requires assistance)</p>
+                            <RangeSlider
+                                variant='success'
+                                value={dexterityscore}
+                                onChange={(event) => { setDexterityscore(event.target.value) }}
+                                tooltip='on'
+                                min={1}
+                                max={3} />
+                        </Form.Group>
+                        <br></br>
                         <Form.Group>
                             <div className="d-flex justify-content-center">
                                 <Button as="sub" variant="primary" class="btn btn-primary btn-block btn-lg" onClick={handleSubmit(updateUser)}>Save</Button>
@@ -221,6 +254,8 @@ const MyAccountPage = () => {
                 Height={userProfile.Height}
                 Weight={userProfile.Weight}
                 Illness={userProfile.Illness}
+                MobilityScore={userProfile.MobilityScore}
+                DexterityScore={userProfile.DexterityScore}
                 onClick={() => { showModal(userProfile.id) }}
                 onDelete={() => { deleteUser(userProfile.id) }}
             />

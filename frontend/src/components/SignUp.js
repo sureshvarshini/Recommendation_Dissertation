@@ -11,7 +11,8 @@ import signupImage from "../assets/signup.jpg"
 const SignupPage = () => {
     const [gender, setGender] = useState('')
     const [illness, setIllness] = useState('')
-    const [mobilityscore, setmobilityscore] = useState(1)
+    const [mobilityscore, setMobilityscore] = useState(1)
+    const [dexterityscore, setDexterityscore] = useState(1)
     const [responseData, setResponseData] = useState('')
     const [variant, setVariant] = useState('')
     const [show, setShow] = useState(false)
@@ -23,7 +24,8 @@ const SignupPage = () => {
         const formData = {
             gender: gender,
             illness: illness,
-            mobilityscore: mobilityscore
+            mobilityscore: mobilityscore,
+            dexterityscore: dexterityscore
         }
         console.log({ ...data, ...formData })
 
@@ -193,14 +195,27 @@ const SignupPage = () => {
                                         <br></br>
                                         <Form.Group>
                                             <Form.Label style={{ fontSize: "20px" }}>Mobility Score</Form.Label>
-                                            <br></br>
+                                            <p>(20 - excellent mobility, 1 - requires assistance)</p>
                                             <RangeSlider
                                                 variant='primary'
                                                 value={mobilityscore}
-                                                onChange={(event) => { setmobilityscore(event.target.value) }}
+                                                onChange={(event) => { setMobilityscore(event.target.value) }}
                                                 tooltip='on'
                                                 min={1}
                                                 max={20} />
+                                        </Form.Group>
+                                        <br></br>
+                                        <br></br>
+                                        <Form.Group>
+                                            <Form.Label style={{ fontSize: "20px" }}>Dexterity Score</Form.Label>
+                                            <p>(3 - excellent controlled hand and finger movements, 1 - requires assistance)</p>
+                                            <RangeSlider
+                                                variant='success'
+                                                value={dexterityscore}
+                                                onChange={(event) => { setDexterityscore(event.target.value) }}
+                                                tooltip='on'
+                                                min={1}
+                                                max={3} />
                                         </Form.Group>
                                         <br></br>
                                         {show ?
