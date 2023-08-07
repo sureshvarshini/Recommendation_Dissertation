@@ -105,8 +105,9 @@ def extract_macro_nutrients(calories, user):
     return macro_nutrients
 
 
-def choose_foods(macro_nutrients_ratio, foods_df):
+def choose_foods(macro_nutrients_ratio, foods):
     # Choose random foods seperated by meal type
+    foods_df = foods.copy()
     final_food_choices = []
     weekly_menu = prepare_weekly_menu(foods=foods_df)
 
@@ -229,13 +230,14 @@ def prepare_weekly_menu(foods):
     shuffled_food_data = foods.sample(
         frac=1).reset_index().drop('index', axis=1)
 
-    return shuffled_food_data.sample(n=800)
+    return shuffled_food_data.sample(n=700)
 
 
-def get_similar_users_recommendations(user_id, ratings, users):
+def get_similar_users_recommendations(user_id, ratings, users, all_foods):
     # Get top 3 foods with highest rating from top 3 similar users
     users_df = pd.DataFrame(users)
     ratings_df = pd.DataFrame(ratings)
+    all_foods_ids = all_foods['id'].unique()
 
     # Choosing similar users by features: age, weight, illness
     users_df_copy = users_df[['age', 'weight', 'illness']]
@@ -263,7 +265,7 @@ def get_similar_users_recommendations(user_id, ratings, users):
         user_ratings = ratings_df[ratings_df['user_id'] == similar_user_id]
         top_rated_foods_df = user_ratings.nlargest(3, 'rating')
         for each_id in top_rated_foods_df['food_id'].tolist():
-            if each_id not in rated_food_ids:
+            if each_id not in rated_food_ids and each_id in all_foods_ids:
                 rated_food_ids.append(each_id)
     return rated_food_ids
 

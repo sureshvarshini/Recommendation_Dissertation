@@ -105,6 +105,7 @@ class SignupUserResource(Resource):
         height = data["height"]
         weight = data["weight"]
         illness = data["illness"]
+        mobilityscore = data["mobilityscore"]
 
         db_user = User.fetch_by_username(username=username)
 
@@ -125,6 +126,7 @@ class SignupUserResource(Resource):
             height=height,
             weight=weight,
             illness=illness,
+            mobilityscore=mobilityscore
         )
 
         new_user_id = new_user.save()

@@ -20,8 +20,9 @@ class User(db.Model):
     illness = db.Column(db.String())
     activity_level = db.Column(db.String())
     schedule = db.Column(db.JSON())
+    mobilityscore = db.Column(db.Integer()) 
 
-    def __init__(self, username, email, password, firstname, lastname, age, gender, height, weight, illness):
+    def __init__(self, username, email, password, firstname, lastname, age, gender, height, weight, illness, mobilityscore):
         self.username = username
         self.email = email
         self.password = password
@@ -32,6 +33,7 @@ class User(db.Model):
         self.height = height
         self.weight = weight
         self.illness = illness
+        self.mobilityscore = mobilityscore
 
     def __repr__(self):
         return f"User {self.username}: Age: {self.age}"

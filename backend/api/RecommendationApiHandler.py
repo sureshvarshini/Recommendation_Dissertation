@@ -7,14 +7,15 @@ from recommendation.RecommendFood import daily_calorie_intake, extract_macro_nut
 from caching import cache
 
 # List of foods to avoid based on illness
-FOODS_AVOID = {'Ulcer': ['alcohol', 'caffeine', 'coffee', 'tea', 'sodas', 'milk', 'sausages', 'fatty meats', 'fry', 'gravy', 'cream soups', 'salad dressing'
-                         'chili peppers', 'chili', 'horseradish', 'pickles', 'olives', 'fermenet', 'brine', 'chocolate', 'tomatoe', 'lemon', 'orange', 'grapefruit', 'spicy'],
-               'Diabetes': ['sugar', 'sweets', 'candy',
-                            'chocolate', 'honey', 'alcohol', 'banana', 'melon', 'mango'],
-               'Cholesterol': ['lamb', 'pork', 'butter', 'cream', 'palm oil', 'donuts', 'cakes',
-                               'cake', 'potato chips', 'fried', 'fries', 'cheese', 'sausages', 'bacon', 'hot dogs', 'cookies'],
-               'Hypertension':  ['soup', 'pizza', 'sandwich', 'burrito', 'tacos', 'pickle', 'full fat milk', 'full fat cream', 'butter', 'alcohol'],
-               'Coronary Heart Disease': ['butter', 'gravy', 'non-dairy creamers', 'fried foods', 'potato chips', 'cookies', 'pies', 'ice cream']}
+FOODS_AVOID = {
+    'Ulcer': ['alcohol', 'caffeine', 'coffee', 'tea', 'sodas', 'milk', 'sausages', 'fatty meats', 'fry', 'gravy', 'cream soups', 'salad dressing', 'chili peppers', 
+              'chili', 'horseradish', 'pickles', 'olives', 'fermenet', 'brine', 'chocolate', 'tomatoe', 'lemon', 'orange', 'grapefruit', 'spicy'],
+    'Diabetes': ['sugar', 'sweets', 'candy', 'chocolate', 'honey', 'alcohol', 'banana', 'melon', 'mango'],
+    'Cholesterol': ['lamb', 'pork', 'butter', 'cream', 'palm oil', 'donuts', 'cakes', 'cake', 'potato chips', 'fried', 'fries', 'cheese', 'sausages', 'bacon', 'hot dogs', 'cookies'],
+    'Hypertension':  ['soup', 'pizza', 'sandwich', 'burrito', 'tacos', 'pickle', 'full fat milk', 'full fat cream', 'butter', 'alcohol'],
+    'Coronary Heart Disease': ['butter', 'gravy', 'non-dairy creamers', 'fried foods', 'potato chips', 'cookies', 'pies', 'ice cream'],
+    'Arthritis': ['soda', 'sweet', 'candy', 'pastries', 'milk', 'donuts', 'fried', 'alcohol', 'wheat', 'barley', 'rye', 'cereal', 'shrimp', 'canned soup', 'pizza', 'bacon']
+}
 
 
 class FoodRecommendationResource(Resource):
@@ -35,22 +36,23 @@ class FoodRecommendationResource(Resource):
 
         # Pick out foods that fall under calculated calories and macro nutrients
         all_foods = pd.DataFrame(Food.fetch_all_foods())
-
-        # Add a filtering condition here - avoid foods based on illness
-        illness_food_avoid = FOODS_AVOID.get(user.illness)
-        print("Filtering foods based on illness")
-        for index, row in all_foods.iterrows():
-            ingredient = [ingredient.strip()
-                          for ingredient in row['ingredients'].split(' ')]
-            name = [name.strip() for name in row['name'].split(' ')]
-            contains = any(item.lower() in illness_food_avoid for item in ingredient) or any(
-                item.lower() in illness_food_avoid for item in name)
-            if contains:
-                all_foods.drop(index, inplace=True)
-        all_foods.reset_index(inplace=True)
+        pd.set_option('display.max_rows', None)
+        # Add a filtering condition here - avoid foods based on illness, only if illness is present
+        if (user.illness != 'No'):
+            print('Filtering foods based on illness: ', user.illness)
+            illness_food_avoid = FOODS_AVOID.get(user.illness)
+            for index, row in all_foods.iterrows():
+                ingredient = [ingredient.strip()
+                            for ingredient in row['ingredients'].split(' ')]
+                name = [name.strip() for name in row['name'].split(' ')]
+                contains = any(item.lower() in illness_food_avoid for item in ingredient) or any(
+                    item.lower() in illness_food_avoid for item in name)
+                if contains:
+                    all_foods.drop(index, inplace=True)
+            all_foods.reset_index(drop=True, inplace=True)
 
         food_choices = choose_foods(
-            macro_nutrients_ratio=macro_nutrients_ratio, foods_df=all_foods)
+            macro_nutrients_ratio=macro_nutrients_ratio, foods=all_foods)
 
         temp_id = []
         recommended_meal_choices = {}
@@ -59,6 +61,7 @@ class FoodRecommendationResource(Resource):
             recommended_response = []
             similar_food_response = []
             for food_id in meal_options:
+                print(food_id)
                 temp_id.append(food_id)
                 db_food = Food.fetch_by_id(id=food_id)
                 db_food_object = {
@@ -95,7 +98,7 @@ class FoodRecommendationResource(Resource):
         # Fetch foods - highest rating by similar users
         ratings = Rating.fetch_all_ratings()
         users = User.fetch_all_users()
-        rated_food_ids = get_similar_users_recommendations(id, ratings, users)
+        rated_food_ids = get_similar_users_recommendations(id, ratings, users, all_foods)
 
         rated_food_choices = []
         for id in rated_food_ids:

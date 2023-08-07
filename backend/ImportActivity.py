@@ -41,6 +41,7 @@ class User(Base):
     illness = Column(String())
     activity_level = Column(String())
     schedule = Column(JSON())
+    mobilityscore = Column(Integer()) 
 
 
 class Activity(Base):
