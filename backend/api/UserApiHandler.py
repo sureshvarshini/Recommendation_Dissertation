@@ -22,6 +22,8 @@ class UserResource(Resource):
                 "Height": db_user.height,
                 "Weight": db_user.weight,
                 "Illness": db_user.illness,
+                "MobilityScore": db_user.mobilityscore,
+                "DexterityScore": db_user.dexterityscore
             }), 200)
 
         return make_response(jsonify({
@@ -48,6 +50,8 @@ class UserResource(Resource):
         height = data.get("height")
         weight = data.get("weight")
         illness = data.get("illness")
+        mobilityscore = data.get("mobilityscore")
+        dexterityscore = data.get("dexterityscore")
 
         if firstname:
             db_user.firstname = firstname
@@ -63,6 +67,10 @@ class UserResource(Resource):
             db_user.weight = weight
         if illness:
             db_user.illness = illness
+        if mobilityscore:
+            db_user.mobilityscore = mobilityscore
+        if dexterityscore:
+            db_user.dexterityscore = dexterityscore
 
         db_user.save()
 
@@ -106,6 +114,7 @@ class SignupUserResource(Resource):
         weight = data["weight"]
         illness = data["illness"]
         mobilityscore = data["mobilityscore"]
+        dexterityscore = data["dexterityscore"]
 
         db_user = User.fetch_by_username(username=username)
 
@@ -126,7 +135,8 @@ class SignupUserResource(Resource):
             height=height,
             weight=weight,
             illness=illness,
-            mobilityscore=mobilityscore
+            mobilityscore=mobilityscore,
+            dexterityscore=dexterityscore
         )
 
         new_user_id = new_user.save()

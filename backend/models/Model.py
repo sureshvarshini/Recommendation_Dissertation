@@ -21,8 +21,9 @@ class User(db.Model):
     activity_level = db.Column(db.String())
     schedule = db.Column(db.JSON())
     mobilityscore = db.Column(db.Integer()) 
+    dexterityscore = db.Column(db.Integer())
 
-    def __init__(self, username, email, password, firstname, lastname, age, gender, height, weight, illness, mobilityscore):
+    def __init__(self, username, email, password, firstname, lastname, age, gender, height, weight, illness, mobilityscore, dexterityscore):
         self.username = username
         self.email = email
         self.password = password
@@ -34,6 +35,7 @@ class User(db.Model):
         self.weight = weight
         self.illness = illness
         self.mobilityscore = mobilityscore
+        self.dexterityscore = dexterityscore
 
     def __repr__(self):
         return f"User {self.username}: Age: {self.age}"
@@ -210,12 +212,14 @@ class Activity(db.Model):
     mobilityscore = db.Column(db.Integer())
     dexterityscore = db.Column(db.Integer())
 
-    def __init__(self, name, type, directions, repetitions, image):
+    def __init__(self, name, type, directions, repetitions, image, mobilityscore, dexterityscore):
         self.name = name
         self.type = type
         self.directions = directions
         self.repetitions = repetitions
         self.image = image
+        self.mobilityscore = mobilityscore
+        self.dexterityscore = dexterityscore
 
     def __repr__(self):
         return f"Exercise: {self.name}, type: {self.type}"
