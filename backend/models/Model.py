@@ -233,3 +233,34 @@ class Activity(db.Model):
 
     def fetch_all_activities():
         return [each_activity.as_dictionary() for each_activity in Activity.query.all()]
+    
+class ADL(db.Model):
+    __tablename__ = 'adl'
+    __bind_key__ = 'adl'
+
+    id = db.Column(db.Integer(), primary_key=True, autoincrement=True)
+    user_id = db.Column(db.Integer())
+    activity = db.Column(db.String())
+    start_datetime = db.Column(db.String())
+    end_datetime = db.Column(db.String())
+    duration = db.Column(db.Integer())
+
+    def __init__(self, user_id, activity, start_datetime, end_datetime, duration):
+        self.user_id = user_id
+        self.activity = activity
+        self.start_datetime = start_datetime
+        self.end_datetime = end_datetime
+        self.duration = duration
+
+    def __repr__(self):
+        return f"User Id: {self.user_id}, activity: {self.activity}"
+
+    def as_dictionary(self):
+        return {column.name: getattr(self, column.name) for column in self.__table__.columns}
+
+    @classmethod
+    def fetch_by_id(self, id):
+        return ADL.query.filter_by(id=id).first()
+
+    def fetch_all_adl_by_id(user_id):
+        return [each_adl_activity.as_dictionary() for each_adl_activity in ADL.query.filter_by(user_id=user_id).all()]

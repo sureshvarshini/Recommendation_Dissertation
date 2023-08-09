@@ -11,7 +11,8 @@ class Config:
         'food': "sqlite:///" + os.path.join(BASE_DIRECTORY, 'food.db'),
         'rating': "sqlite:///" + os.path.join(BASE_DIRECTORY, 'rating.db'),
         'water': "sqlite:///" + os.path.join(BASE_DIRECTORY, 'water.db'),
-        'activity': "sqlite:///" + os.path.join(BASE_DIRECTORY, 'activity.db')
+        'activity': "sqlite:///" + os.path.join(BASE_DIRECTORY, 'activity.db'),
+        'adl': "sqlite:///" + os.path.join(BASE_DIRECTORY, 'adl.db')
     }
     SQLALCHEMY_ECHO = False
     DEBUG = True

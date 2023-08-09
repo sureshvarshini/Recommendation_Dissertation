@@ -1,8 +1,16 @@
 import pandas as pd
+import numpy as np
+from statistics import mean
 from flask_restful import Resource
 from flask import request, jsonify, make_response
+from sklearn.preprocessing import LabelEncoder
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import classification_report
+from sklearn.utils import resample
 from datetime import datetime
-from models.Model import Food, Rating, User, Water, Activity
+from models.Model import Food, Rating, User, Water, Activity, ADL
 from recommendation.RecommendFood import daily_calorie_intake, extract_macro_nutrients, choose_foods, get_similar_foods_recommendation, get_similar_users_recommendations, get_hybrid_recommendation
 from caching import cache
 
@@ -189,16 +197,120 @@ class ViewRatingResource(Resource):
 class ScheduleRecommendationResource(Resource):
     def get(self, id):
         default_user_schedule = {
-            'Breakfast': 7,
-            'Morning Activity 1': 8,
-            'Morning Snacks': 10,
-            'Morning Activity 2': 11,
-            'Lunch': 13,
-            'Afternoon Activity': 14,
-            'Afternoon Snacks': 16,
-            'Evening Activity': 17,
-            'Dinner': 19
+            'Morning': [9,11],
+            'Afternoon': [14],
+            'Evening': [17]
         }
+
+        user_schedule = {
+            'Morning': [],
+            'Afternoon': [],
+            'Evening': []
+        }
+
+        # Fetch the user's ADL history
+        user_adl = ADL.fetch_all_adl_by_id(user_id=id)
+
+        # Train Model for user - predict their free slots for today
+        # TODO: find wakup and sleep time - average out - if many
+        if len(user_adl) != 0:
+            print(f"FOUND for user: {id}, ADL history, predicting free times based on this.\n")
+            user_adl_df = pd.DataFrame(user_adl)
+
+            # Construct features for ML model
+            # Get what day of week, starts from 0-6 (Monday, Tuesday, Sunday)
+            user_adl_df['day'] = pd.to_datetime(
+                user_adl_df['start_datetime']).dt.day_of_week
+            # Returns the hour of the day
+            user_adl_df['start_hour'] = pd.to_datetime(
+                user_adl_df['start_datetime']).dt.hour
+            # Encode 'No' activity as 1, rest as 0
+            user_adl_df['activity'] = [1 if activity == 'No'
+                                       else 0 for activity in user_adl_df['activity']]
+
+            print(user_adl_df.tail())
+
+            # Identify feature and target variables
+            X = user_adl_df[['day', 'start_hour']]
+            y = user_adl_df['activity']
+
+            # Split data
+            X_train, X_test, y_train, y_test = train_test_split(
+                X, y, test_size=0.2)
+
+            # Oversampling minority class in train data
+            train_data = pd.concat([X_train, y_train], axis=1)
+            majority_activity = train_data[train_data['activity'] == 0]
+            minority_activity = train_data[train_data['activity'] == 1]
+
+            minority_oversampled = resample(
+                minority_activity, replace=True, n_samples=len(majority_activity), random_state=29)
+            sampled_activities = pd.concat(
+                [majority_activity, minority_oversampled])
+
+            X_train_sampled = sampled_activities.drop('activity', axis=1)
+            y_train_sampled = sampled_activities['activity']
+
+            # Train model
+            model = RandomForestClassifier()
+            model.fit(X_train_sampled, y_train_sampled)
+
+            y_pred = model.predict(X_test)
+            print(classification_report(y_test, y_pred))
+
+            # Get current day, user's wakeup and sleep time
+            day_of_week = datetime.now().weekday()
+            wakeup_rows = user_adl_df[user_adl_df['activity'] == 'wakeup']
+            sleep_rows = user_adl_df[user_adl_df['activity'] == 'sleep']
+            wakeup_times = []
+            sleep_times = []
+
+            for _, row in wakeup_rows.iterrows():
+                wakeup_times.append(datetime.strptime(
+                    str(row['start_datetime']), '%Y-%m-%d %H:%M:%S.%f').hour)
+
+            for _, row in sleep_rows.iterrows():
+                sleep_times.append(datetime.strptime(
+                    str(row['start_datetime']), '%Y-%m-%d %H:%M:%S.%f').hour)
+
+            # Assign default wakeup and sleep time if no value present
+            if (len(wakeup_times) != 0 and len(sleep_times)):
+                wakeup = round(mean(wakeup_times))
+                sleep = round(mean(sleep_times) + 12)
+            else:
+                # Default wakeup and sleep time
+                wakeup = 6
+                sleep = 21
+
+            today_data = pd.DataFrame(
+                {'day': day_of_week, 'start_hour': np.arange(wakeup, sleep)})
+            prediction = model.predict(today_data)
+
+            print(prediction)
+            free_time_slots = today_data[prediction == 1]
+
+            free_slots = []
+
+            for _, slot in free_time_slots.iterrows():
+                print(f"You might be free at {slot['start_hour']}:00")
+                free_slots.append(slot['start_hour'])
+                if 6 <= slot['start_hour'] <= 12:
+                    user_schedule['Morning'].append(int(
+                        slot['start_hour']))
+                elif 13 <= slot['start_hour'] <= 18:
+                    user_schedule['Afternoon'].append(int(
+                        slot['start_hour']))
+                elif 19 <= slot['start_hour'] <= 24:
+                    user_schedule['Evening'].append(int(
+                        slot['start_hour']))
+
+        else:
+            # If no history found return a default schedule
+            print(f"ADL history NOT FOUND for user: {id} .\n")
+
+            user_schedule = default_user_schedule
+
+        print(user_schedule)
 
         # Check if user exists
         db_user = User.fetch_by_id(id=id)
@@ -210,17 +322,24 @@ class ScheduleRecommendationResource(Resource):
 
         return make_response(jsonify({
             "user_id": id,
-            "schedule": schedule
+            "schedule": user_schedule
         }), 200)
 
 
 class ActivityRecommendationResource(Resource):
     def get(self, id):
-        activities = {
-            'Morning_1': {'Outdoor': [], 'Exercise': []},
-            'Morning_2': {'Hobbies': []},
+
+        all_activities = Activity.fetch_all_activities()
+
+        # Filter activities for users based on mobility and dexterity score
+        db_user = User.fetch_by_id(id=id)
+        db_user_mobilityscore = db_user.mobilityscore
+        db_user_dexterityscore = db_user.dexterityscore
+
+        suitable_activities = {
+            'Morning': {'Outdoor': [], 'Exercise': [], 'Hobbies': []},
             'Afternoon': {'Reading': [], 'Music': []},
-            'Evening': {'Gardening': [], 'Yoga': [], 'Chair Yoga':[], 'TV': []}
+            'Evening': {'Gardening': [], 'Yoga': [], 'Chair Yoga': [], 'TV': []}
         }
         hobbies = []
         outdoor = []
@@ -231,52 +350,56 @@ class ActivityRecommendationResource(Resource):
         yoga = []
         chairYoga = []
         exercises = []
-        all_activities = Activity.fetch_all_activities()
+
         for activity in all_activities:
-            print(activity)
-            if activity['type'] == 'Hobbies':
-                hobbies.append(activity)
+            activity_mobilityscore = activity['mobilityscore']
+            activity_dexterityscore = activity['dexterityscore']
 
-            elif activity['type'] == 'Walking':
-                outdoor.append(activity)
+            if (activity_mobilityscore <= db_user_mobilityscore) and (activity_dexterityscore <= db_user_dexterityscore):
 
-            elif activity['type'] == 'Jogging':
-                outdoor.append(activity)
-            
-            elif activity['type'] == 'TV':
-                tv.append(activity)
+                if activity['type'] == 'Hobbies':
+                    hobbies.append(activity)
 
-            elif activity['type'] == 'Music':
-                music.append(activity)
+                elif activity['type'] == 'Walking':
+                    outdoor.append(activity)
 
-            elif activity['type'] == 'Reading':
-                reading.append(activity)
+                elif activity['type'] == 'Jogging':
+                    outdoor.append(activity)
 
-            elif activity['type'] == 'Gardening':
-                gardening.append(activity)
+                elif activity['type'] == 'TV':
+                    tv.append(activity)
 
-            elif activity['type'] == 'Yoga':
-                yoga.append(activity)
+                elif activity['type'] == 'Music':
+                    music.append(activity)
 
-            elif activity['type'] == 'Chair Yoga':
-                chairYoga.append(activity)
+                elif activity['type'] == 'Reading':
+                    reading.append(activity)
 
-            elif 'exercise' in activity['type']:
-                exercises.append(activity)
+                elif activity['type'] == 'Gardening':
+                    gardening.append(activity)
 
-        activities['Morning_1']['Outdoor'] = outdoor
-        activities['Morning_1']['Exercise'] = exercises
-        activities['Morning_2']['Hobbies'] = hobbies
-        activities['Afternoon']['Reading'] = reading
-        activities['Afternoon']['Music'] = music
-        activities['Evening']['Gardening'] = gardening
-        activities['Evening']['TV'] = tv
-        activities['Evening']['Yoga'] = yoga
-        activities['Evening']['Chair Yoga'] = chairYoga
+                elif activity['type'] == 'Yoga':
+                    yoga.append(activity)
+
+                elif activity['type'] == 'Chair Yoga':
+                    chairYoga.append(activity)
+
+                elif 'exercise' in activity['type']:
+                    exercises.append(activity)
+
+        suitable_activities['Morning']['Outdoor'] = outdoor
+        suitable_activities['Morning']['Exercise'] = exercises
+        suitable_activities['Morning']['Hobbies'] = hobbies
+        suitable_activities['Afternoon']['Reading'] = reading
+        suitable_activities['Afternoon']['Music'] = music
+        suitable_activities['Evening']['Gardening'] = gardening
+        suitable_activities['Evening']['TV'] = tv
+        suitable_activities['Evening']['Yoga'] = yoga
+        suitable_activities['Evening']['Chair Yoga'] = chairYoga
 
         return make_response(jsonify({
             "user_id": id,
-            "activities": activities
+            "activities": suitable_activities
         }), 200)
 
 

@@ -7,6 +7,7 @@ import warnings
 from sklearn.cluster import KMeans
 from sklearn.preprocessing import LabelEncoder
 from datetime import datetime
+from ImportAdl import write_to_db
 warnings.filterwarnings("ignore")
 
 BASE_DIRECTORY = os.path.dirname(os.path.realpath(__file__))
@@ -116,12 +117,22 @@ def clean_adl_data(file_name):
 
     ongoing_activities = {}
     activity_tracking = {}
+    available_slots = {}
+    user_adl_dataset = {'user_id': [],
+                        'activity': [],
+                        'start_datetime': [],
+                        'end_datetime': [],
+                        'duration': []
+                        }
     user_ids = subset_file['user_id'].drop_duplicates().values
 
     # Calculate amount of time (in min) spent for each activity by each user
     for id in user_ids:
         ongoing_activities[id] = {}
         activity_tracking[id] = {}
+        if (id != 'ALL'):
+            available_slots[id] = []
+
     for index, row in subset_file.iterrows():
         activity = row['activity']
         activity_name = row['activity_name']
@@ -138,6 +149,13 @@ def clean_adl_data(file_name):
             if begin_timestamp:
                 time_spent = time - begin_timestamp
                 activity_tracking[user_id][activity_name] += time_spent.total_seconds()/60
+
+                # Add it to user adl dict
+                user_adl_dataset['user_id'].append(user_id)
+                user_adl_dataset['activity'].append(activity_name)
+                user_adl_dataset['start_datetime'].append(begin_timestamp)
+                user_adl_dataset['end_datetime'].append(time)
+                user_adl_dataset['duration'].append(round(time_spent.total_seconds()/60))
 
     # Normalise time spent per activity per day by each user
     # Find start and end date
@@ -165,9 +183,61 @@ def clean_adl_data(file_name):
     sorted_activities = {key: dict(sorted(value.items(), reverse=True, key=lambda element: element[1]))
                          for key, value in activity_tracking.items()}
 
+    # Find activity level
     categorize_activity_level(activities=sorted_activities)
-    analyse_meal_times(
-        csv_file_location=UPLOAD_FILE_LOCATION + 'data-temp.csv')
+    # analyse_meal_times(csv_file_location=UPLOAD_FILE_LOCATION + 'data-temp.csv')
+
+    # Find times when user is idle
+    adl_df = pd.DataFrame(user_adl_dataset)
+    user_ids = adl_df['user_id'].unique()
+    for id in user_ids:
+        all_rows = adl_df[adl_df['user_id'] == 'ALL']
+
+        if(id != 'ALL'):
+            print(f"Finding slots for: {id}")
+            print("------------------------")
+            slots = []
+
+            # Convert ALL to user_ids - duplicate 'ALL' rows for each user
+            all_rows['user_id'] = id
+            adl_df = pd.concat([adl_df, all_rows], ignore_index=True)
+            adl_df.reset_index(drop=True, inplace=True)
+
+            # Get user_id separate dfs
+            user_df = adl_df[adl_df['user_id'] == id]
+            user_df.sort_values(by='start_datetime', inplace=True)
+            user_df.reset_index(drop=True, inplace=True)
+            user_df['time_diff'] = user_df['start_datetime'] - user_df['end_datetime'].shift(1)
+            threshold_gap = pd.Timedelta(minutes=30)
+
+            # Find the periods of no activity
+            no_activity_periods = user_df[user_df['time_diff'] > threshold_gap]
+
+            for index, row in no_activity_periods.iterrows():
+                if(row['activity'] != 'wakeup' and row['activity'] != 'sleep'):
+                    print(f"No activity recorded between {user_df['start_datetime'].iloc[index - 1]} and {row['start_datetime']}")
+                    slots.append((str(user_df['start_datetime'].iloc[index - 1]), str(row['start_datetime'])))
+
+                    # Add it to user adl dictionary
+                    difference =  datetime.strptime(str(row['start_datetime']), '%Y-%m-%d %H:%M:%S.%f') - datetime.strptime(str(user_df['start_datetime'].iloc[index - 1]), '%Y-%m-%d %H:%M:%S.%f')
+                    user_adl_dataset['user_id'].append(id)
+                    user_adl_dataset['activity'].append('No')
+                    user_adl_dataset['start_datetime'].append(user_df['start_datetime'].iloc[index - 1])
+                    user_adl_dataset['end_datetime'].append(row['start_datetime'])
+                    user_adl_dataset['duration'].append(round(difference.total_seconds()/60))
+            available_slots[id] = slots
+            print()
+    adl_df = pd.DataFrame(user_adl_dataset)
+    # Drop rows with 'ALL' -- adl_df is final adl dataframe for user written into sql db
+    all_index = adl_df[adl_df['user_id'] == 'ALL'].index
+    adl_df.drop(index=all_index, inplace=True)
+    adl_df.reset_index(drop=True, inplace=True)
+    adl_df['user_id'] = adl_df['user_id'].str.replace('R', '').astype(int)
+    adl_df.to_csv(UPLOAD_FILE_LOCATION + 'data-temp-user.csv', index=False)   
+    print()
+
+    # Write ADL of user to db
+    write_to_db(csv_file = UPLOAD_FILE_LOCATION + 'data-temp-user.csv')
 
 
 def analyse_meal_times(csv_file_location):
@@ -243,11 +313,11 @@ def analyse_meal_times(csv_file_location):
             cluster_3 = row['Cluster 3']
             n = n + 1
 
-        user_schedule[row.name] = user_schedule[row.name] if n is 0 else round((cluster_1 + cluster_2 + cluster_3)/n)
+        user_schedule[row.name] = user_schedule[row.name] if n is 0 else round(
+            (cluster_1 + cluster_2 + cluster_3)/n)
 
     # Update user schedule in profile db
     for id in user_ids:
         if id != 'ALL':
             print(id[1:])
             User.update_schedule(id=id[1:], schedule=user_schedule)
-
