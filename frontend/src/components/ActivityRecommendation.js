@@ -10,8 +10,7 @@ import 'slick-carousel/slick/slick-theme.css';
 
 const ActivityRecommendationPage = () => {
     const [schedule, setSchedule] = useState([])
-    const [morning1Activity, setMorning1Activity] = useState([])
-    const [morning2Activity, setMorning2Activity] = useState([])
+    const [morningActivity, setMorningActivity] = useState([])
     const [afternoonActivity, setAfternoonActivity] = useState([])
     const [eveningActivity, setEveningActivity] = useState([])
     const [selectedActivity, setSelectedActivity] = useState([])
@@ -53,7 +52,6 @@ const ActivityRecommendationPage = () => {
         console.log(rating)
         setRating(rating)
 
-        // Hit flask end point to submit rating for food-id
         const data = {
             rating: rating,
             user_id: parseInt(userId),
@@ -92,8 +90,7 @@ const ActivityRecommendationPage = () => {
             .then(response => {
                 console.log("Success fetching activities.")
                 console.log(response.data)
-                setMorning1Activity(response.data.activities.Morning_1)
-                setMorning2Activity(response.data.activities.Morning_2)
+                setMorningActivity(response.data.activities.Morning)
                 setAfternoonActivity(response.data.activities.Afternoon)
                 setEveningActivity(response.data.activities.Evening)
             }).catch(error => {
@@ -195,121 +192,112 @@ const ActivityRecommendationPage = () => {
                     {Object.entries(schedule).map(([activity, time]) => (
                         <div key={activity}>
                             <h2 style={{ marginTop: '30px', backgroundColor: '#cafaac', borderRadius: '10px', padding: 10, fontWeight: 'bold' }}>
-                                {time > 12 ? `${time - 12} PM` : `${time} AM`} {activity}
+                                {activity} - {time > 12 ? `${time - 12} PM` : `${time} AM`}
                             </h2>
                             {(activity === 'Breakfast' || activity === 'Morning Snacks' || activity === 'Lunch' || activity === 'Afternoon Snacks' || activity === "Dinner") &&
                                 <div className='sub-activity'>
                                     <h3 style={{ marginTop: '30px', padding: 10 }}>Lead me to today's suggested dishes! Click <Link to='/recommendations/food' style={{ fontWeight: 'bold' }}>here</Link></h3>
                                 </div>
                             }
-                            {activity === 'Morning Activity 1' &&
+                            {activity === 'Morning' &&
                                 <div className='sub-activity'>
-                                    {Object.keys(morning1Activity).map((type) => (
-                                        <div key={type}>
-                                            <h3 style={{ marginTop: '30px', padding: 10, fontWeight: 'bold' }}>{type}</h3>
-                                            <Slider {...settings}>
-                                                {morning1Activity[type].map((activity) => (
-                                                    <div key={activity.id}>
-                                                        <ActivityCard
-                                                            Name={activity.name}
-                                                            Type={activity.type}
-                                                            Image={activity.image}
-                                                            onClick={() => { showModal(activity) }}
-                                                        />
-                                                    </div>
-                                                ))}
-                                            </Slider>
-                                        </div>
-                                    ))
-                                    }
+                                    {Object.keys(morningActivity).map((type) => {
+                                        if (morningActivity[type].length > 0) {
+                                            return (
+                                                <div key={type}>
+                                                    <h3 style={{ marginTop: '30px', padding: 10, fontWeight: 'bold' }}>{type}</h3>
+                                                    <Slider {...settings}>
+                                                        {morningActivity[type].map((activity) => (
+                                                            <div key={activity.id}>
+                                                                <ActivityCard
+                                                                    Name={activity.name}
+                                                                    Type={activity.type}
+                                                                    Image={activity.image}
+                                                                    onClick={() => { showModal(activity) }}
+                                                                />
+                                                            </div>
+                                                        ))}
+                                                    </Slider>
+                                                </div>
+                                            )
+                                        }
+                                        return null
+                                    })}
                                 </div>
                             }
-                            {activity === 'Morning Activity 2' &&
+                            {activity === 'Afternoon' &&
                                 <div className='sub-activity'>
-                                    {Object.keys(morning2Activity).map((type) => (
-                                        <div key={type}>
-                                            <h3 style={{ marginTop: '30px', padding: 10, fontWeight: 'bold' }}>{type}</h3>
-                                            <Slider {...settings}>
-                                                {morning2Activity[type].map((activity) => (
-                                                    <div key={activity.id}>
-                                                        <ActivityCard
-                                                            Name={activity.name}
-                                                            Type={activity.type}
-                                                            Image={activity.image}
-                                                            onClick={() => { showModal(activity) }}
-                                                        />
-                                                    </div>
-                                                ))}
-                                            </Slider>
-                                        </div>
-                                    ))
-                                    }
+                                    {Object.keys(afternoonActivity).map((type) => {
+                                        if (afternoonActivity[type].length > 0) {
+                                            return (
+                                                <div key={type}>
+                                                    <h3 style={{ marginTop: '30px', padding: 10, fontWeight: 'bold' }}>{type}</h3>
+                                                    <Slider {...settings_one}>
+                                                        {afternoonActivity[type].map((activity) => (
+                                                            <div key={activity.id}>
+                                                                <ActivityCard
+                                                                    Name={activity.name}
+                                                                    Type={activity.type}
+                                                                    Image={activity.image}
+                                                                    onClick={() => { showModal(activity) }}
+                                                                />
+                                                            </div>
+                                                        ))}
+                                                    </Slider>
+                                                </div>
+                                            )
+                                        }
+                                        return null
+                                    })}
                                 </div>
                             }
-                            {activity === 'Afternoon Activity' &&
+                            {activity === 'Evening' &&
                                 <div className='sub-activity'>
-                                    {Object.keys(afternoonActivity).map((type) => (
-                                        <div key={type}>
-                                            <h3 style={{ marginTop: '30px', padding: 10, fontWeight: 'bold' }}>{type}</h3>
-                                            <Slider {...settings_one}>
-                                                {afternoonActivity[type].map((activity) => (
-                                                    <div key={activity.id}>
-                                                        <ActivityCard
-                                                            Name={activity.name}
-                                                            Type={activity.type}
-                                                            Image={activity.image}
-                                                            onClick={() => { showModal(activity) }}
-                                                        />
-                                                    </div>
-                                                ))}
-                                            </Slider>
-                                        </div>
-                                    ))}
-                                </div>
-                            }
-                            {activity === 'Evening Activity' &&
-                                <div className='sub-activity'>
-                                    {Object.keys(eveningActivity).map((type) => (
-                                        <div key={type}>
-                                            {type.includes('Yoga') ?
-                                                (<h3 style={{ marginTop: '30px', padding: 10, fontWeight: 'bold' }}>{type} - Kindly adhere to the sequence of cards for a complete yoga session.</h3>) :
-                                                (<h3 style={{ marginTop: '30px', padding: 10, fontWeight: 'bold' }}>{type}</h3>)}
-                                            {eveningActivity[type].length == 1 ? (
-                                                <Slider {...settings_one}>
-                                                    {eveningActivity[type].map((activity) => (
-                                                        <div key={activity.id}>
-                                                            <ActivityCard
-                                                                Name={activity.name}
-                                                                Type={activity.type}
-                                                                Image={activity.image}
-                                                                onClick={() => { showModal(activity) }}
-                                                            />
-                                                        </div>
-                                                    ))}
-                                                </Slider>
-                                            ) : (
-                                                <Slider {...settings}>
-                                                    {eveningActivity[type].map((activity) => (
-                                                        <div key={activity.id}>
-                                                            <ActivityCard
-                                                                Name={activity.name}
-                                                                Type={activity.type}
-                                                                Image={activity.image}
-                                                                onClick={() => { showModal(activity) }}
-                                                            />
-                                                        </div>
-                                                    ))}
-                                                </Slider>
-                                            )}
-                                        </div>
-                                    ))}
+                                    {Object.keys(eveningActivity).map((type) => {
+                                        if (eveningActivity[type].length > 0) {
+                                            return (
+                                                <div key={type}>
+                                                    {type.includes('Yoga') ?
+                                                        (<h3 style={{ marginTop: '30px', padding: 10, fontWeight: 'bold' }}>{type} - Kindly adhere to the sequence of cards for a complete yoga session.</h3>) :
+                                                        (<h3 style={{ marginTop: '30px', padding: 10, fontWeight: 'bold' }}>{type}</h3>)}
+                                                    {eveningActivity[type].length == 1 ? (
+                                                        <Slider {...settings_one}>
+                                                            {eveningActivity[type].map((activity) => (
+                                                                <div key={activity.id}>
+                                                                    <ActivityCard
+                                                                        Name={activity.name}
+                                                                        Type={activity.type}
+                                                                        Image={activity.image}
+                                                                        onClick={() => { showModal(activity) }}
+                                                                    />
+                                                                </div>
+                                                            ))}
+                                                        </Slider>
+                                                    ) : (
+                                                        <Slider {...settings}>
+                                                            {eveningActivity[type].map((activity) => (
+                                                                <div key={activity.id}>
+                                                                    <ActivityCard
+                                                                        Name={activity.name}
+                                                                        Type={activity.type}
+                                                                        Image={activity.image}
+                                                                        onClick={() => { showModal(activity) }}
+                                                                    />
+                                                                </div>
+                                                            ))}
+                                                        </Slider>
+                                                    )}
+                                                </div>
+                                            )
+                                        }
+                                        return null
+                                    })}
                                 </div>
                             }
                         </div>
                     ))}
                 </div>
-            )
-            }
+            )}
         </div >
     )
 }
