@@ -206,18 +206,33 @@ const ActivityRecommendationPage = () => {
                                             return (
                                                 <div key={type}>
                                                     <h3 style={{ marginTop: '30px', padding: 10, fontWeight: 'bold' }}>{type}</h3>
-                                                    <Slider {...settings}>
-                                                        {morningActivity[type].map((activity) => (
-                                                            <div key={activity.id}>
-                                                                <ActivityCard
-                                                                    Name={activity.name}
-                                                                    Type={activity.type}
-                                                                    Image={activity.image}
-                                                                    onClick={() => { showModal(activity) }}
-                                                                />
-                                                            </div>
-                                                        ))}
-                                                    </Slider>
+                                                    {morningActivity[type].length == 1 ? (
+                                                        <Slider {...settings_one}>
+                                                            {morningActivity[type].map((activity) => (
+                                                                <div key={activity.id}>
+                                                                    <ActivityCard
+                                                                        Name={activity.name}
+                                                                        Type={activity.type}
+                                                                        Image={activity.image}
+                                                                        onClick={() => { showModal(activity) }}
+                                                                    />
+                                                                </div>
+                                                            ))}
+                                                        </Slider>
+                                                    ) : (
+                                                        <Slider {...settings}>
+                                                            {morningActivity[type].map((activity) => (
+                                                                <div key={activity.id}>
+                                                                    <ActivityCard
+                                                                        Name={activity.name}
+                                                                        Type={activity.type}
+                                                                        Image={activity.image}
+                                                                        onClick={() => { showModal(activity) }}
+                                                                    />
+                                                                </div>
+                                                            ))}
+                                                        </Slider>
+                                                    )}
                                                 </div>
                                             )
                                         }
