@@ -212,7 +212,7 @@ class ScheduleRecommendationResource(Resource):
         user_adl = ADL.fetch_all_adl_by_id(user_id=id)
 
         # Train Model for user - predict their free slots for today
-        # TODO: find wakup and sleep time - average out - if many
+        # TODO: Find meal times also
         if len(user_adl) != 0:
             print(f"FOUND for user: {id}, ADL history, predicting free times based on this.\n")
             user_adl_df = pd.DataFrame(user_adl)
@@ -274,7 +274,7 @@ class ScheduleRecommendationResource(Resource):
                     str(row['start_datetime']), '%Y-%m-%d %H:%M:%S.%f').hour)
 
             # Assign default wakeup and sleep time if no value present
-            if (len(wakeup_times) != 0 and len(sleep_times)):
+            if (len(wakeup_times) != 0 and len(sleep_times) != 0):
                 wakeup = round(mean(wakeup_times))
                 sleep = round(mean(sleep_times) + 12)
             else:
