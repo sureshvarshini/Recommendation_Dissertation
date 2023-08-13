@@ -3,11 +3,16 @@ import os
 import re
 import pandas as pd
 import numpy as np
-import warnings
+from statistics import mean
 from sklearn.cluster import KMeans
 from sklearn.preprocessing import LabelEncoder
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import classification_report
+from sklearn.utils import resample
 from datetime import datetime
 from ImportAdl import write_to_db
+import warnings
 warnings.filterwarnings("ignore")
 
 BASE_DIRECTORY = os.path.dirname(os.path.realpath(__file__))
@@ -157,6 +162,7 @@ def clean_adl_data(file_name):
                 user_adl_dataset['end_datetime'].append(time)
                 user_adl_dataset['duration'].append(round(time_spent.total_seconds()/60))
 
+    print(user_adl_dataset)
     # Normalise time spent per activity per day by each user
     # Find start and end date
     start = datetime.strptime(
@@ -190,24 +196,37 @@ def clean_adl_data(file_name):
     # Find times when user is idle
     adl_df = pd.DataFrame(user_adl_dataset)
     user_ids = adl_df['user_id'].unique()
+    all_rows = adl_df[adl_df['user_id'] == 'ALL']
+
     for id in user_ids:
-        all_rows = adl_df[adl_df['user_id'] == 'ALL']
+        all_rows_temp = all_rows.copy()
 
         if(id != 'ALL'):
             print(f"Finding slots for: {id}")
             print("------------------------")
             slots = []
 
-            # Convert ALL to user_ids - duplicate 'ALL' rows for each user
-            all_rows['user_id'] = id
-            adl_df = pd.concat([adl_df, all_rows], ignore_index=True)
-            adl_df.reset_index(drop=True, inplace=True)
+            all_rows_temp['user_id'] = id
+            all_rows_temp.reset_index(drop=True, inplace=True)
 
             # Get user_id separate dfs
-            user_df = adl_df[adl_df['user_id'] == id]
+            user_df_temp = adl_df[adl_df['user_id'] == id]
+            frames = [all_rows_temp, user_df_temp]
+            user_df = pd.concat(frames)
+
             user_df.sort_values(by='start_datetime', inplace=True)
             user_df.reset_index(drop=True, inplace=True)
             user_df['time_diff'] = user_df['start_datetime'] - user_df['end_datetime'].shift(1)
+
+            # Convert ALL to user_ids - duplicate the ALL rows
+            for index, row in all_rows_temp.iterrows():
+                # Add it to user adl dict
+                user_adl_dataset['user_id'].append(id)
+                user_adl_dataset['activity'].append(row['activity'])
+                user_adl_dataset['start_datetime'].append(row['start_datetime'])
+                user_adl_dataset['end_datetime'].append(row['end_datetime'])
+                user_adl_dataset['duration'].append(row['duration'])
+
             threshold_gap = pd.Timedelta(minutes=30)
 
             # Find the periods of no activity
@@ -229,95 +248,94 @@ def clean_adl_data(file_name):
             print()
     adl_df = pd.DataFrame(user_adl_dataset)
     # Drop rows with 'ALL' -- adl_df is final adl dataframe for user written into sql db
-    all_index = adl_df[adl_df['user_id'] == 'ALL'].index
-    adl_df.drop(index=all_index, inplace=True)
+    adl_df = adl_df[adl_df['user_id'] != 'ALL']
     adl_df.reset_index(drop=True, inplace=True)
     adl_df['user_id'] = adl_df['user_id'].str.replace('R', '').astype(int)
-    adl_df.to_csv(UPLOAD_FILE_LOCATION + 'data-temp-user.csv', index=False)   
+    adl_df.to_csv(ADL_CSV_DATASET_LOCATION + 'data-user-cleaned.csv', mode='a', index=False, header=False)   
     print()
 
     # Write ADL of user to db
-    write_to_db(csv_file = UPLOAD_FILE_LOCATION + 'data-temp-user.csv')
+    write_to_db(csv_file = ADL_CSV_DATASET_LOCATION + 'data-user-cleaned.csv')
 
 
-def analyse_meal_times(csv_file_location):
-    csv_file = pd.read_csv(csv_file_location)
-    csv_file['datetime'] = pd.to_datetime(csv_file['datetime'])
-    csv_file['hour'] = csv_file['datetime'].dt.hour
-    csv_file['minute'] = csv_file['datetime'].dt.minute
-    user_ids = csv_file['user_id'].unique()
+def analyse_free_times(user_adl_df, this_activity):   
+    # Construct features for ML model
+    # Get what day of week, starts from 0-6 (Monday, Tuesday, Sunday)
+    user_adl_df['day'] = pd.to_datetime(
+        user_adl_df['start_datetime']).dt.day_of_week
+    # Returns the hour of the day
+    user_adl_df['start_hour'] = pd.to_datetime(
+        user_adl_df['start_datetime']).dt.hour
+    user_adl_df['activity'] = [1 if activity in this_activity
+                                else 0 for activity in user_adl_df['activity']]
+    # print(user_adl_df)
 
-    encoder = LabelEncoder()
-    csv_file['activity_name'] = encoder.fit_transform(
-        csv_file['activity_name'])
-    csv_file['user_id'] = encoder.fit_transform(csv_file['user_id'])
+    # Identify feature and target variables
+    X = user_adl_df[['day', 'start_hour']]
+    y = user_adl_df['activity']
 
-    X = csv_file[['hour', 'minute', 'activity_name', 'user_id']]
+    # Split data
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.2)
 
-    kmeans = KMeans(n_clusters=3, random_state=42)
-    csv_file['cluster'] = kmeans.fit_predict(X)
+    # Oversampling minority class in train data - only for finding leisure time
+    if 'No' in this_activity:
+        print("Oversmapling leisure activities time.\n")
+        train_data = pd.concat([X_train, y_train], axis=1)
+        majority_activity = train_data[train_data['activity'] == 0]
+        minority_activity = train_data[train_data['activity'] == 1]
 
-    time_slots = [7, 8, 10, 12, 14, 16, 18, 20, 21, 22]
+        minority_oversampled = resample(
+            minority_activity, replace=True, n_samples=len(majority_activity), random_state=29)
+        sampled_activities = pd.concat(
+            [majority_activity, minority_oversampled])
 
-    # Initialize an empty dictionary to store the recommended meal times for each cluster and time slot
-    meal_times_recommendations = {}
+        X_train_sampled = sampled_activities.drop('activity', axis=1)
+        y_train_sampled = sampled_activities['activity']
 
-    # Group the data by cluster and time slot and calculate the mean hour for each group
-    for cluster_id in range(3):
-        cluster_data = csv_file[csv_file['cluster'] == cluster_id]
-        cluster_recommendations = []
+        # Train model
+        model = RandomForestClassifier()
+        model.fit(X_train_sampled, y_train_sampled)
+    else:
+        print("No oversampling for meal times.\n")
+        
+        # Train model
+        model = RandomForestClassifier()
+        model.fit(X_train, y_train)
 
-        for i in range(len(time_slots) - 1):
-            start_time = time_slots[i]
-            end_time = time_slots[i + 1]
+    y_pred = model.predict(X_test)
+    print(classification_report(y_test, y_pred))
 
-            # Get the mean hour for the current time slot in the cluster
-            mean_hour = cluster_data[(cluster_data['hour'] >= start_time) & (
-                cluster_data['hour'] < end_time)]['hour'].mean()
-            cluster_recommendations.append(mean_hour)
+    # Get current day, user's wakeup and sleep time
+    day_of_week = datetime.now().weekday()
+    wakeup_rows = user_adl_df[user_adl_df['activity'] == 'wakeup']
+    sleep_rows = user_adl_df[user_adl_df['activity'] == 'sleep']
+    wakeup_times = []
+    sleep_times = []
 
-        meal_times_recommendations[f'Cluster {cluster_id + 1}'] = cluster_recommendations
+    for _, row in wakeup_rows.iterrows():
+        wakeup_times.append(datetime.strptime(
+            str(row['start_datetime']), '%Y-%m-%d %H:%M:%S.%f').hour)
 
-    # Convert the dictionary to a DataFrame for easier visualization
-    recommendations_df = pd.DataFrame(meal_times_recommendations)
-    recommendations_df.index = ['Breakfast', 'Morning Activity 1', 'Morning Snacks', 'Morning Activity 2',
-                                'Lunch', 'Afternoon Activity', 'Afternoon Snacks', 'Evening Activity', 'Dinner']
+    for _, row in sleep_rows.iterrows():
+        sleep_times.append(datetime.strptime(
+            str(row['start_datetime']), '%Y-%m-%d %H:%M:%S.%f').hour)
 
-    user_schedule = {
-        'Breakfast': 7,
-        'Morning Activity 1': 8,
-        'Morning Snacks': 10,
-        'Morning Activity 2': 11,
-        'Lunch': 13,
-        'Afternoon Activity': 14,
-        'Afternoon Snacks': 16,
-        'Evening Activity': 17,
-        'Dinner': 19
-    }
+    # Assign default wakeup and sleep time if no value present
+    if (len(wakeup_times) != 0 and len(sleep_times) != 0):
+        wakeup = round(mean(wakeup_times))
+        sleep = round(mean(sleep_times) + 12)
+    else:
+        # Default wakeup and sleep time
+        wakeup = 6
+        sleep = 21
 
-    for index, row in recommendations_df.iterrows():
-        n = 0
-        if np.isnan(row['Cluster 1']):
-            cluster_1 = 0
-        else:
-            cluster_1 = row['Cluster 1']
-            n = n + 1
-        if np.isnan(row['Cluster 2']):
-            cluster_2 = 0
-        else:
-            cluster_2 = row['Cluster 2']
-            n = n + 1
-        if np.isnan(row['Cluster 3']):
-            cluster_3 = 0
-        else:
-            cluster_3 = row['Cluster 3']
-            n = n + 1
+    today_data = pd.DataFrame(
+        {'day': day_of_week, 'start_hour': np.arange(wakeup, sleep)})
+    prediction = model.predict(today_data)
 
-        user_schedule[row.name] = user_schedule[row.name] if n is 0 else round(
-            (cluster_1 + cluster_2 + cluster_3)/n)
+    print(prediction)
+    free_time_slots = today_data[prediction == 1]
 
-    # Update user schedule in profile db
-    for id in user_ids:
-        if id != 'ALL':
-            print(id[1:])
-            User.update_schedule(id=id[1:], schedule=user_schedule)
+    return free_time_slots
+

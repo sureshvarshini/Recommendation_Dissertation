@@ -1,17 +1,11 @@
 import pandas as pd
-import numpy as np
-from statistics import mean
+
 from flask_restful import Resource
 from flask import request, jsonify, make_response
-from sklearn.preprocessing import LabelEncoder
-from sklearn.model_selection import train_test_split
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import classification_report
-from sklearn.utils import resample
 from datetime import datetime
 from models.Model import Food, Rating, User, Water, Activity, ADL
 from recommendation.RecommendFood import daily_calorie_intake, extract_macro_nutrients, choose_foods, get_similar_foods_recommendation, get_similar_users_recommendations, get_hybrid_recommendation
+from recommendation.ActivityLevel import analyse_free_times
 from caching import cache
 
 # List of foods to avoid based on illness
@@ -197,99 +191,41 @@ class ViewRatingResource(Resource):
 class ScheduleRecommendationResource(Resource):
     def get(self, id):
         default_user_schedule = {
-            'Morning': [9,11],
+            'Morning': [9, 11],
             'Afternoon': [14],
-            'Evening': [17]
+            'Evening': [17],
+            'Breakfast': [7],
+            'Morning Snacks': [10],
+            'Lunch': [13],
+            'Afternoon Snacks': [16],
+            'Dinner': [19]
         }
 
         user_schedule = {
             'Morning': [],
             'Afternoon': [],
-            'Evening': []
+            'Evening': [],
+            'Breakfast': [],
+            'Morning Snacks': [],
+            'Lunch': [],
+            'Afternoon Snacks': [],
+            'Dinner': []
         }
 
         # Fetch the user's ADL history
         user_adl = ADL.fetch_all_adl_by_id(user_id=id)
 
-        # Train Model for user - predict their free slots for today
-        # TODO: Find meal times also
+        # Train Model for user - predict their meal times and free slots for today
         if len(user_adl) != 0:
-            print(f"FOUND for user: {id}, ADL history, predicting free times based on this.\n")
+            print(
+                f"FOUND for user: {id}, ADL history, predicting free times based on this.\n")
             user_adl_df = pd.DataFrame(user_adl)
-
-            # Construct features for ML model
-            # Get what day of week, starts from 0-6 (Monday, Tuesday, Sunday)
-            user_adl_df['day'] = pd.to_datetime(
-                user_adl_df['start_datetime']).dt.day_of_week
-            # Returns the hour of the day
-            user_adl_df['start_hour'] = pd.to_datetime(
-                user_adl_df['start_datetime']).dt.hour
-            # Encode 'No' activity as 1, rest as 0
-            user_adl_df['activity'] = [1 if activity == 'No'
-                                       else 0 for activity in user_adl_df['activity']]
-
-            print(user_adl_df.tail())
-
-            # Identify feature and target variables
-            X = user_adl_df[['day', 'start_hour']]
-            y = user_adl_df['activity']
-
-            # Split data
-            X_train, X_test, y_train, y_test = train_test_split(
-                X, y, test_size=0.2)
-
-            # Oversampling minority class in train data
-            train_data = pd.concat([X_train, y_train], axis=1)
-            majority_activity = train_data[train_data['activity'] == 0]
-            minority_activity = train_data[train_data['activity'] == 1]
-
-            minority_oversampled = resample(
-                minority_activity, replace=True, n_samples=len(majority_activity), random_state=29)
-            sampled_activities = pd.concat(
-                [majority_activity, minority_oversampled])
-
-            X_train_sampled = sampled_activities.drop('activity', axis=1)
-            y_train_sampled = sampled_activities['activity']
-
-            # Train model
-            model = RandomForestClassifier()
-            model.fit(X_train_sampled, y_train_sampled)
-
-            y_pred = model.predict(X_test)
-            print(classification_report(y_test, y_pred))
-
-            # Get current day, user's wakeup and sleep time
-            day_of_week = datetime.now().weekday()
-            wakeup_rows = user_adl_df[user_adl_df['activity'] == 'wakeup']
-            sleep_rows = user_adl_df[user_adl_df['activity'] == 'sleep']
-            wakeup_times = []
-            sleep_times = []
-
-            for _, row in wakeup_rows.iterrows():
-                wakeup_times.append(datetime.strptime(
-                    str(row['start_datetime']), '%Y-%m-%d %H:%M:%S.%f').hour)
-
-            for _, row in sleep_rows.iterrows():
-                sleep_times.append(datetime.strptime(
-                    str(row['start_datetime']), '%Y-%m-%d %H:%M:%S.%f').hour)
-
-            # Assign default wakeup and sleep time if no value present
-            if (len(wakeup_times) != 0 and len(sleep_times) != 0):
-                wakeup = round(mean(wakeup_times))
-                sleep = round(mean(sleep_times) + 12)
-            else:
-                # Default wakeup and sleep time
-                wakeup = 6
-                sleep = 21
-
-            today_data = pd.DataFrame(
-                {'day': day_of_week, 'start_hour': np.arange(wakeup, sleep)})
-            prediction = model.predict(today_data)
-
-            print(prediction)
-            free_time_slots = today_data[prediction == 1]
-
+            # Find free time slots
+            free_time_slots = analyse_free_times(
+                user_adl_df=user_adl_df, this_activity=['No'])
             free_slots = []
+            print()
+            print("Finding free slots: \n")
 
             for _, slot in free_time_slots.iterrows():
                 print(f"You might be free at {slot['start_hour']}:00")
@@ -297,17 +233,42 @@ class ScheduleRecommendationResource(Resource):
                 if 6 <= slot['start_hour'] <= 12:
                     user_schedule['Morning'].append(int(
                         slot['start_hour']))
-                elif 13 <= slot['start_hour'] <= 18:
+                elif 12 < slot['start_hour'] <= 18:
                     user_schedule['Afternoon'].append(int(
                         slot['start_hour']))
-                elif 19 <= slot['start_hour'] <= 24:
+                elif 18 < slot['start_hour'] <= 24:
                     user_schedule['Evening'].append(int(
+                        slot['start_hour']))
+
+            user_adl_df = pd.DataFrame(user_adl)
+            # Find meal time slots
+            meal_time_slots = analyse_free_times(user_adl_df=user_adl_df, this_activity=[
+                                                 'Cooking', 'Eat', 'Cook', 'meal_preparation'])
+            meal_slots = []
+            print()
+            print("Finding meal slots: \n")
+            for _, slot in meal_time_slots.iterrows():
+                print(f"You can eat at {slot['start_hour']}:00")
+                meal_slots.append(slot['start_hour'])
+                if 7 <= slot['start_hour'] <= 8:
+                    user_schedule['Breakfast'].append(int(
+                        slot['start_hour']))
+                elif 10 <= slot['start_hour'] <= 11:
+                    user_schedule['Morning Snacks'].append(int(
+                        slot['start_hour']))
+                elif 12 <= slot['start_hour'] <= 14:
+                    user_schedule['Lunch'].append(int(
+                        slot['start_hour']))
+                elif 15 <= slot['start_hour'] <= 16:
+                    user_schedule['Afternoon Snacks'].append(int(
+                        slot['start_hour']))
+                elif 17 <= slot['start_hour'] <= 20:
+                    user_schedule['Dinner'].append(int(
                         slot['start_hour']))
 
         else:
             # If no history found return a default schedule
             print(f"ADL history NOT FOUND for user: {id} .\n")
-
             user_schedule = default_user_schedule
 
         print(user_schedule)
