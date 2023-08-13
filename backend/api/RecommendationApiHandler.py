@@ -189,26 +189,28 @@ class ViewRatingResource(Resource):
 
 
 class ScheduleRecommendationResource(Resource):
+    # To cache every 24 hours in seconds, timeout = 86400
+    @cache.cached(timeout=120)
     def get(self, id):
         default_user_schedule = {
-            'Morning': [9, 11],
-            'Afternoon': [14],
-            'Evening': [17],
             'Breakfast': [7],
+            'Morning': [9, 11],
             'Morning Snacks': [10],
+            'Afternoon': [14],
             'Lunch': [13],
             'Afternoon Snacks': [16],
+            'Evening': [17],
             'Dinner': [19]
         }
 
         user_schedule = {
-            'Morning': [],
-            'Afternoon': [],
-            'Evening': [],
             'Breakfast': [],
+            'Morning': [],
             'Morning Snacks': [],
+            'Afternoon': [],
             'Lunch': [],
             'Afternoon Snacks': [],
+            'Evening': [],
             'Dinner': []
         }
 
@@ -250,7 +252,7 @@ class ScheduleRecommendationResource(Resource):
             for _, slot in meal_time_slots.iterrows():
                 print(f"You can eat at {slot['start_hour']}:00")
                 meal_slots.append(slot['start_hour'])
-                if 7 <= slot['start_hour'] <= 8:
+                if 7 <= slot['start_hour'] <= 9:
                     user_schedule['Breakfast'].append(int(
                         slot['start_hour']))
                 elif 10 <= slot['start_hour'] <= 11:
@@ -288,6 +290,8 @@ class ScheduleRecommendationResource(Resource):
 
 
 class ActivityRecommendationResource(Resource):
+    # To cache every 24 hours in seconds, timeout = 86400
+    @cache.cached(timeout=120)
     def get(self, id):
 
         all_activities = Activity.fetch_all_activities()
