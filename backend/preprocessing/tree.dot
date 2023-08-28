@@ -1,0 +1,33 @@
+digraph Tree {
+node [shape=box, style="filled, rounded", color="black", fontname="helvetica"] ;
+edge [fontname="helvetica"] ;
+0 [label=<day &le; 2.5<br/>gini = 0.5<br/>samples = 53829<br/>value = [42579, 42619]<br/>class = Busy>, fillcolor="#ffffff"] ;
+1 [label=<day &le; 0.5<br/>gini = 0.5<br/>samples = 32281<br/>value = [24861, 26344]<br/>class = Busy>, fillcolor="#f4f9fe"] ;
+0 -> 1 [labeldistance=2.5, labelangle=45, headlabel="True"] ;
+2 [label=<start_hour &le; 7.5<br/>gini = 0.5<br/>samples = 10531<br/>value = [7857, 8812]<br/>class = Busy>, fillcolor="#eaf4fc"] ;
+1 -> 2 ;
+3 [label="(...)", fillcolor="#C0C0C0"] ;
+2 -> 3 ;
+8 [label="(...)", fillcolor="#C0C0C0"] ;
+2 -> 8 ;
+39 [label=<day &le; 1.5<br/>gini = 0.5<br/>samples = 21750<br/>value = [17004, 17532]<br/>class = Busy>, fillcolor="#f9fcfe"] ;
+1 -> 39 ;
+40 [label="(...)", fillcolor="#C0C0C0"] ;
+39 -> 40 ;
+75 [label="(...)", fillcolor="#C0C0C0"] ;
+39 -> 75 ;
+110 [label=<start_hour &le; 7.5<br/>gini = 0.5<br/>samples = 21548<br/>value = [17718, 16275]<br/>class = Free>, fillcolor="#fdf5ef"] ;
+0 -> 110 [labeldistance=2.5, labelangle=-45, headlabel="False"] ;
+111 [label=<day &le; 3.5<br/>gini = 0.41<br/>samples = 3686<br/>value = [4084, 1670]<br/>class = Free>, fillcolor="#f0b58a"] ;
+110 -> 111 ;
+112 [label="(...)", fillcolor="#C0C0C0"] ;
+111 -> 112 ;
+119 [label="(...)", fillcolor="#C0C0C0"] ;
+111 -> 119 ;
+128 [label=<day &le; 4.5<br/>gini = 0.5<br/>samples = 17862<br/>value = [13634, 14605]<br/>class = Busy>, fillcolor="#f2f8fd"] ;
+110 -> 128 ;
+129 [label="(...)", fillcolor="#C0C0C0"] ;
+128 -> 129 ;
+190 [label="(...)", fillcolor="#C0C0C0"] ;
+128 -> 190 ;
+}

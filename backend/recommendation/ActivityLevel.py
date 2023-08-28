@@ -339,3 +339,36 @@ def analyse_free_times(user_adl_df, this_activity):
 
     return free_time_slots
 
+def find_breakfast_time(user_adl_df):
+    wakeup_rows = user_adl_df[user_adl_df['activity'] == 'wakeup']
+    wakeup_times = []
+
+    for _, row in wakeup_rows.iterrows():
+        wakeup_times.append(datetime.strptime(
+            str(row['start_datetime']), '%Y-%m-%d %H:%M:%S.%f').hour)
+
+    # Assign default wakeup and sleep time if no value present
+    if (len(wakeup_times) != 0):
+        wakeup = round(mean(wakeup_times))
+    else:
+        # Default wakeup and sleep time
+        wakeup = 6
+    
+    return wakeup + 1
+
+def find_dinner_time(user_adl_df):
+    sleep_rows = user_adl_df[user_adl_df['activity'] == 'sleep']
+    sleep_times = []
+
+    for _, row in sleep_rows.iterrows():
+        sleep_times.append(datetime.strptime(
+            str(row['start_datetime']), '%Y-%m-%d %H:%M:%S.%f').hour)
+
+    # Assign default wakeup and sleep time if no value present
+    if (len(sleep_times) != 0):
+        sleep = round(mean(sleep_times) + 12)
+    else:
+        # Default sleep time
+        sleep = 21
+    
+    return sleep - 2

@@ -243,8 +243,8 @@ def get_similar_users_recommendations(user_id, ratings, users, all_foods):
     users_df_copy = users_df[['age', 'weight', 'illness']]
     # Label encoding the features
     encoder = LabelEncoder()
-    # users_df_copy['age'] = encoder.fit_transform(users_df_copy['age'])
-    # users_df_copy['weight'] = encoder.fit_transform(users_df_copy['weight'])
+    users_df_copy['age'] = encoder.fit_transform(users_df_copy['age'])
+    users_df_copy['weight'] = encoder.fit_transform(users_df_copy['weight'])
     users_df_copy['illness'] = encoder.fit_transform(users_df_copy['illness'])
     data_scalar = StandardScaler().fit_transform(users_df_copy)
 

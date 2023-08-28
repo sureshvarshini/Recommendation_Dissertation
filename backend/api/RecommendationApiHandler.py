@@ -5,7 +5,7 @@ from flask import request, jsonify, make_response
 from datetime import datetime
 from models.Model import Food, Rating, User, Water, Activity, ADL
 from recommendation.RecommendFood import daily_calorie_intake, extract_macro_nutrients, choose_foods, get_similar_foods_recommendation, get_similar_users_recommendations, get_hybrid_recommendation
-from recommendation.ActivityLevel import analyse_free_times
+from recommendation.ActivityLevel import analyse_free_times, find_dinner_time, find_breakfast_time
 from caching import cache
 
 # List of foods to avoid based on illness
@@ -267,6 +267,23 @@ class ScheduleRecommendationResource(Resource):
                 elif 17 <= slot['start_hour'] <= 20:
                     user_schedule['Dinner'].append(int(
                         slot['start_hour']))
+            
+            if len(user_schedule['Breakfast']) == 0:
+                breakfast_time = find_breakfast_time(user_adl_df=user_adl_df)
+                user_schedule['Breakfast'].append(breakfast_time)
+
+            if len(user_schedule['Morning Snacks']) == 0:
+                user_schedule['Morning Snacks'].append(10)
+            
+            if len(user_schedule['Lunch']) == 0:
+                user_schedule['Lunch'].append(13)
+            
+            if len(user_schedule['Afternoon Snacks']) == 0:
+                user_schedule['Afternoon Snacks'].append(15)
+            
+            if len(user_schedule['Dinner']) == 0:
+                dinner_time = find_dinner_time(user_adl_df=user_adl_df)
+                user_schedule['Dinner'].append(dinner_time)
 
         else:
             # If no history found return a default schedule
