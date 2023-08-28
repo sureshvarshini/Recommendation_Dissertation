@@ -13,7 +13,7 @@ const LoggedInLinks = () => {
         <Link className="nav-link active" to="/">Home</Link>
       </li>
       <li className="nav-item">
-        <a className="nav-link active" href='/' onClick={() => {
+        <a className="nav-link active" onClick={() => {
           logout()
           localStorage.clear()
         }}>Logout</a>
@@ -47,9 +47,7 @@ const Navbar = () => {
     <nav className="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
       <div className="container-fluid">
         <a style={{ fontSize: '20px' }} className="navbar-brand" href="/">
-          <img src={logo} class="me-2" height="40" loading="lazy" />
-          AssistWise
-        </a>
+          <img src={logo} alt="logo" class="me-2" height="40" loading="lazy" /> AssistWise </a>
         <div className="rightside" id="navbarNav">
           <ul className="navbar-nav">{isUserLoggedIn ? <LoggedInLinks /> : <LoggedOutLinks />}</ul>
         </div>

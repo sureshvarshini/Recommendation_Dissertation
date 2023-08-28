@@ -191,9 +191,16 @@ const ActivityRecommendationPage = () => {
                 <div className='activity'>
                     {Object.entries(schedule).map(([activity, time]) => (
                         <div key={activity}>
-                            <h2 style={{ marginTop: '30px', backgroundColor: '#cafaac', borderRadius: '10px', padding: 10, fontWeight: 'bold' }}>
-                                {activity} - {time > 12 ? `${time - 12} PM` : `${time} AM`}
-                            </h2>
+                            {time.length > 0 && (
+                                <h2 style={{ marginTop: '30px', backgroundColor: '#cafaac', borderRadius: '10px', padding: 10, fontWeight: 'bold' }}>
+                                    {activity} - {time.map(hour => (
+                                        <span key={hour}>
+                                            {hour > 12 ? `${hour - 12} PM` : `${hour} AM`}
+                                            {time.indexOf(hour) !== time.length - 1 ? ', ' : ''}
+                                        </span>
+                                    ))}
+                                </h2>
+                            )}
                             {(activity === 'Breakfast' || activity === 'Morning Snacks' || activity === 'Lunch' || activity === 'Afternoon Snacks' || activity === "Dinner") &&
                                 <div className='sub-activity'>
                                     <h3 style={{ marginTop: '30px', padding: 10 }}>Lead me to today's suggested dishes! Click <Link to='/recommendations/food' style={{ fontWeight: 'bold' }}>here</Link></h3>
@@ -202,7 +209,7 @@ const ActivityRecommendationPage = () => {
                             {activity === 'Morning' &&
                                 <div className='sub-activity'>
                                     {Object.keys(morningActivity).map((type) => {
-                                        if (morningActivity[type].length > 0) {
+                                        if (morningActivity[type].length > 0 && time.length > 0) {
                                             return (
                                                 <div key={type}>
                                                     <h3 style={{ marginTop: '30px', padding: 10, fontWeight: 'bold' }}>{type}</h3>
@@ -243,7 +250,7 @@ const ActivityRecommendationPage = () => {
                             {activity === 'Afternoon' &&
                                 <div className='sub-activity'>
                                     {Object.keys(afternoonActivity).map((type) => {
-                                        if (afternoonActivity[type].length > 0) {
+                                        if (afternoonActivity[type].length > 0 && time.length > 0) {
                                             return (
                                                 <div key={type}>
                                                     <h3 style={{ marginTop: '30px', padding: 10, fontWeight: 'bold' }}>{type}</h3>
@@ -269,7 +276,7 @@ const ActivityRecommendationPage = () => {
                             {activity === 'Evening' &&
                                 <div className='sub-activity'>
                                     {Object.keys(eveningActivity).map((type) => {
-                                        if (eveningActivity[type].length > 0) {
+                                        if (eveningActivity[type].length > 0 && time.length > 0) {
                                             return (
                                                 <div key={type}>
                                                     {type.includes('Yoga') ?

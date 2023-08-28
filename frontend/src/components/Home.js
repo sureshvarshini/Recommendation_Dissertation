@@ -76,7 +76,7 @@ const LoggedInHomePage = () => {
                             <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
                                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                                     <a href='/recommendations/food'>
-                                        <img style={{ width: 300, height: 400, borderRadius: 20 }} src={foodRecommendation} class="card-img-top" alt="Banana bread on plate" />
+                                        <img style={{ width: 300, height: 400, borderRadius: 20 }} src={foodRecommendation} class="card-img-top" alt="Banana bread ." />
                                     </a>
                                     <Link style={{ borderRadius: 20, fontWeight: 'bold' }} to='/recommendations/food' className="btn btn-outline-light btn-lg m-4">RECIPE RECOMMENDATIONS</Link>
                                 </div>
@@ -88,7 +88,7 @@ const LoggedInHomePage = () => {
                                 </div>
                                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                                     <a href='/recommendations/activity'>
-                                        <img style={{ width: 450, height: 400, borderRadius: 20, marginLeft: 30 }} src={activity} class="card-img-top" alt="Water" />
+                                        <img style={{ width: 450, height: 400, borderRadius: 20, marginLeft: 30 }} src={activity} class="card-img-top" alt="Activity" />
                                     </a>
                                     <Link style={{ borderRadius: 20, fontWeight: 'bold' }} to='/recommendations/activity' className="btn btn-outline-light btn-lg m-4">LEISURE ACTIVITIES</Link>
                                 </div>
